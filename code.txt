@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- Lucide Icons for a modern, futuristic feel -->
     <script src="https://cdn.jsdelivr.net/npm/lucide-dynamic@latest/dist/lucide.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         /*
          * --- Custom Styles for Dream11 Predictor ---
@@ -193,6 +194,7 @@
         }
         
         #chat-popup-window {
+            /* Adjusted for better responsiveness */
             width: 100%;
             max-width: 400px;
             height: 500px;
@@ -231,12 +233,16 @@
         /* Responsive adjustments for the floating chat */
         @media (max-width: 768px) {
             #chat-popup-container {
+                /* On small screens, move the button closer to the corner */
                 bottom: 1rem;
                 right: 1rem;
             }
             #chat-popup-window {
+                /* On small screens, the popup should be bigger */
+                bottom: 1rem;
+                right: 1rem;
                 width: calc(100vw - 2rem);
-                max-width: none;
+                max-width: none; /* Override max-width for full screen-ish size */
                 height: calc(100vh - 2rem);
             }
             /* Hide text on floating button on smaller screens */
@@ -244,7 +250,7 @@
                 display: none;
             }
             #chat-toggle-button {
-                padding: 0.75rem;
+                padding: 0.75rem; /* Make the button a square */
             }
         }
         
@@ -748,9 +754,6 @@
 </body>
 </html>
 
-------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
 
-make changes : 
-
-1. make the chat with ai popup responsive for all devices.
-2. fix all issues with the buttons and icons within that popup.
+let users save their team as pdf and share it as beautiful texts(avoid markdowns please, make them universal).

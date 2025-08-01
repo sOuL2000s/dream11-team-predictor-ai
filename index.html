@@ -8,6 +8,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Marked.js CDN for Markdown parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- html2canvas to convert HTML to image for PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- Lucide Icons for a modern, futuristic feel -->
     <script src="https://cdn.jsdelivr.net/npm/lucide-dynamic@latest/dist/lucide.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -288,7 +292,37 @@
             background-color: #2d3748; /* Darker gray */
             color: #f9fafb; /* Lighter gray */
         }
+
+        /* Styling for chat attachments */
+        .chat-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.75rem;
+            margin-top: 0.5rem;
+            display: block;
+        }
         
+        /* Styling for the copy message */
+        #copy-message {
+            position: fixed;
+            bottom: 6rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.75rem 1.5rem;
+            background-color: #10b981;
+            color: white;
+            border-radius: 9999px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease-in-out;
+            z-index: 100;
+        }
+
+        #copy-message.show {
+            opacity: 1;
+            visibility: visible;
+        }
     </style>
 </head>
 <body class="antialiased dark">
@@ -370,6 +404,16 @@
                             <span class="block sm:inline" id="error-text"></span>
                         </div>
                         <div id="prediction-output" class="p-6 bg-gray-100 rounded-xl border border-gray-200 text-base shadow-inner markdown-content"></div>
+                        
+                        <!-- New buttons for PDF and Text Export -->
+                        <div id="export-buttons" class="mt-4 flex flex-col sm:flex-row gap-4 hidden">
+                            <button id="save-pdf-btn" class="flex-1 py-3 px-6 sm:py-4 sm:px-8 rounded-full bg-green-500 text-white font-bold shadow-lg hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300 transition-all duration-300 transform hover:scale-105">
+                                <i data-lucide="file-text" class="w-5 h-5 mr-2 inline-block"></i> Save as PDF
+                            </button>
+                            <button id="share-text-btn" class="flex-1 py-3 px-6 sm:py-4 sm:px-8 rounded-full bg-blue-500 text-white font-bold shadow-lg hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105">
+                                <i data-lucide="share-2" class="w-5 h-5 mr-2 inline-block"></i> Share as Text
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -379,7 +423,7 @@
     <!-- Floating Chat Popup -->
     <div id="chat-popup-container">
         <!-- Floating button to open the chat -->
-        <button id="chat-toggle-button" class="group">
+        <button id="chat-toggle-button" class="group hidden">
             <i data-lucide="message-square" class="w-6 h-6 text-white transition-transform duration-300 group-hover:rotate-12"></i>
             <span class="ml-2">Chat with AI</span>
         </button>
@@ -398,9 +442,22 @@
             <div id="chat-history" class="p-4 overflow-y-auto flex-1 flex flex-col">
                 <!-- Chat messages will be appended here -->
             </div>
+            
+            <!-- Chat input section with attachment and send button -->
             <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                <!-- Attachment preview -->
+                <div id="chat-image-preview-container" class="mb-2 flex items-center gap-2 hidden">
+                    <img id="chat-image-preview" src="#" alt="Chat Image Preview" class="w-16 h-16 object-cover rounded-md border border-gray-300">
+                    <button id="chat-image-clear" class="p-1 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
                 <div class="flex gap-2">
                     <input type="text" id="chat-input" class="flex-1 p-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Ask a follow-up question...">
+                    <label for="chat-image-upload" class="flex items-center justify-center w-12 h-12 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer transition-all duration-300">
+                        <i data-lucide="image" class="w-5 h-5"></i>
+                    </label>
+                    <input type="file" id="chat-image-upload" accept="image/*" class="hidden">
                     <button id="send-chat-btn" aria-label="Send Message" class="flex items-center justify-center w-12 h-12 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 disabled:bg-indigo-400 disabled:cursor-not-allowed glow-button" style="--accent-primary: #1e88e5;">
                         <i data-lucide="send" class="w-5 h-5"></i>
                     </button>
@@ -408,6 +465,9 @@
             </div>
         </div>
     </div>
+    
+    <!-- Temporary message for clipboard copy -->
+    <div id="copy-message">Text copied to clipboard!</div>
 
 
     <script type="text/javascript">
@@ -433,6 +493,9 @@
         const loadingIndicator = document.getElementById('loading-indicator');
         const resultsContainer = document.getElementById('results-container');
         const predictionOutput = document.getElementById('prediction-output');
+        const exportButtons = document.getElementById('export-buttons');
+        const savePdfBtn = document.getElementById('save-pdf-btn');
+        const shareTextBtn = document.getElementById('share-text-btn');
         const errorContainer = document.getElementById('error-message');
         const errorText = document.getElementById('error-text');
         
@@ -446,9 +509,18 @@
         const chatHistoryDiv = document.getElementById('chat-history');
         const chatInput = document.getElementById('chat-input');
         const sendChatBtn = document.getElementById('send-chat-btn');
+        const chatImageUpload = document.getElementById('chat-image-upload');
+        const chatImagePreviewContainer = document.getElementById('chat-image-preview-container');
+        const chatImagePreview = document.getElementById('chat-image-preview');
+        const chatImageClearBtn = document.getElementById('chat-image-clear');
         
+        // Copy message element
+        const copyMessage = document.getElementById('copy-message');
+
         let base64Image = null;
+        let chatBase64Image = null;
         let chatHistory = [];
+        let lastPredictionText = '';
 
         // Dark Mode Initialization and Listener
         // Set dark mode as default if not already set in local storage
@@ -492,15 +564,22 @@
         }
         
         // Function to append a message to the chat history
-        function appendChatMessage(role, text) {
+        function appendChatMessage(role, text, imageBase64 = null) {
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('chat-message', role);
             
-            // Use marked.js to parse the Markdown content
-            const htmlContent = marked.parse(text);
+            let contentHTML = '';
+
+            if (role === 'user') {
+                contentHTML += `<span class="font-bold">You:</span> ${text}`;
+                if (imageBase64) {
+                    contentHTML += `<img src="data:image/png;base64,${imageBase64}" alt="User attachment" class="chat-image">`;
+                }
+            } else { // AI message
+                contentHTML = marked.parse(text);
+            }
             
-            messageDiv.innerHTML = `<span class="font-bold">${role}:</span> ${htmlContent}`;
-            
+            messageDiv.innerHTML = contentHTML;
             chatHistoryDiv.appendChild(messageDiv);
             
             // Animate message pop-in
@@ -514,7 +593,7 @@
             createIcons();
         }
 
-        // Event listener for image upload input
+        // Event listener for main image upload input
         imageUpload.addEventListener('change', async (event) => {
             const file = event.target.files[0];
             if (file) {
@@ -527,6 +606,7 @@
                     base64Image = await fileToBase64(file);
                     analyzeBtn.disabled = false; // Enable the analyze button
                     resultsContainer.classList.add('hidden'); // Hide previous results
+                    exportButtons.classList.add('hidden'); // Hide export buttons
                     errorContainer.classList.add('hidden'); // Hide any previous errors
                     chatHistory = []; // Clear chat history
                     chatHistoryDiv.innerHTML = '';
@@ -551,46 +631,50 @@
             analyzeBtn.disabled = true;
             resultsContainer.classList.remove('hidden');
             predictionOutput.innerHTML = '';
+            exportButtons.classList.add('hidden');
             errorContainer.classList.add('hidden');
             
             chatToggleButton.classList.add('hidden'); // Hide the chat button during analysis
             chatPopupWindow.classList.add('chat-hidden'); // Hide the chat popup
 
-            const initialPrompt = "Act as a professional sports analyst for the fantasy sports platform Dream11. You are given a screenshot containing information about an upcoming cricket match. Analyze all the text and images within the screenshot to find key details such as player form, team news, pitch conditions, and recent performances. Based on your thorough analysis, provide the best possible Dream11 team, including a captain and vice-captain. Your output should be a single, well-structured text block that first lists the suggested team by player role (Wicket-keeper, Batsmen, All-rounders, Bowlers) and then provides a concise, point-form analysis explaining your choices. The analysis should be grounded in the data you extracted from the image. For example, explain why you chose a particular player based on their recent score or why a specific bowler is a good choice for the pitch conditions mentioned.";
+            const initialPrompt = "Act as a professional sports analyst for the fantasy sports platform Dream11. You are given a screenshot containing information about an upcoming cricket match. Analyze all the text and images within the screenshot to find key details such as player form, team news, pitch conditions, and recent performances. Based on your thorough analysis, provide the best possible Dream11 team, including a captain and vice-captain. Your output should be a single, well-structured text block that first lists the suggested team by player role (Wicket-keeper, Batsmen, All-rounders, Bowlers) and then provides a concise, point-form analysis explaining your choices. The analysis should be grounded in the data you extracted from the image. Use clear headings for each section (e.g., ## Team Analysis) and bullet points for lists (e.g., - Player Name).";
 
             try {
-                // Initial API call with image and prompt
+                // Build the user parts for the initial image upload
+                const userParts = [
+                    { text: initialPrompt },
+                    {
+                        inlineData: {
+                            mimeType: "image/png",
+                            data: base64Image
+                        }
+                    }
+                ];
+                
                 const payload = {
                     contents: [
-                        {
-                            role: "user",
-                            parts: [
-                                { text: initialPrompt },
-                                {
-                                    inlineData: {
-                                        mimeType: "image/png",
-                                        data: base64Image
-                                    }
-                                }
-                            ]
-                        }
+                        { role: "user", parts: userParts }
                     ],
                 };
                 
                 const responseText = await callGeminiAPI(payload);
                 
-                // Use marked.js to render Markdown
+                // Store the raw text for sharing
+                lastPredictionText = responseText;
+
+                // Render the AI response text using Marked.js for display
                 predictionOutput.innerHTML = marked.parse(responseText);
                 
-                // Add the initial prompt and response to chat history
+                // Store the full, correctly formatted API history
                 chatHistory = [
-                    { role: 'user', parts: [{ text: initialPrompt }] },
+                    { role: 'user', parts: userParts },
                     { role: 'model', parts: [{ text: responseText }] }
                 ];
                 
-                // After analysis, show the chat button
+                // After analysis, show the chat and export buttons
                 chatToggleButton.classList.remove('hidden');
-                appendChatMessage('AI', responseText);
+                exportButtons.classList.remove('hidden');
+                appendChatMessage('ai', responseText);
                 chatInput.focus();
 
             } catch (error) {
@@ -601,18 +685,62 @@
                 analyzeBtn.disabled = false;
             }
         });
+        
+        // Event listener for chat image upload
+        chatImageUpload.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                try {
+                    chatBase64Image = await fileToBase64(file);
+                    chatImagePreview.src = `data:image/png;base64,${chatBase64Image}`;
+                    chatImagePreviewContainer.classList.remove('hidden');
+                    chatInput.focus();
+                } catch (error) {
+                    showError('Failed to read chat image file.');
+                    chatBase64Image = null;
+                }
+            }
+        });
+
+        // Event listener for clearing chat image
+        chatImageClearBtn.addEventListener('click', () => {
+            chatBase64Image = null;
+            chatImageUpload.value = '';
+            chatImagePreviewContainer.classList.add('hidden');
+            chatInput.focus();
+        });
 
         // Event listener for sending chat messages
         sendChatBtn.addEventListener('click', async () => {
             const userMessage = chatInput.value.trim();
-            if (!userMessage) {
+            if (!userMessage && !chatBase64Image) {
                 return;
             }
             
-            // Append user message to chat history and UI
-            chatHistory.push({ role: 'user', parts: [{ text: userMessage }] });
-            appendChatMessage('user', userMessage);
+            // Build the parts for the user message
+            const userParts = [];
+            if (userMessage) {
+                userParts.push({ text: userMessage });
+            }
+            if (chatBase64Image) {
+                 userParts.push({
+                    inlineData: {
+                        mimeType: "image/png",
+                        data: chatBase64Image
+                    }
+                });
+            }
+
+            // Append user message and image to chat history and UI
+            chatHistory.push({ role: 'user', parts: userParts });
+            appendChatMessage('user', userMessage, chatBase64Image);
+            
+            // Clear input and attachment after sending
             chatInput.value = '';
+            chatBase64Image = null;
+            chatImageUpload.value = '';
+            chatImagePreviewContainer.classList.add('hidden');
+            
             sendChatBtn.disabled = true;
             
             // Show loading indicator
@@ -640,7 +768,7 @@
                 
                 // Append AI response to chat history and UI
                 chatHistory.push({ role: 'model', parts: [{ text: responseText }] });
-                appendChatMessage('AI', responseText);
+                appendChatMessage('ai', responseText);
                 
             } catch (error) {
                 console.error('Chat API call failed:', error);
@@ -669,6 +797,7 @@
             previewContainer.classList.add('hidden');
             predictionOutput.innerHTML = ''; // Clear the output text
             resultsContainer.classList.add('hidden');
+            exportButtons.classList.add('hidden');
             analyzeBtn.disabled = true;
             base64Image = null;
             errorContainer.classList.add('hidden');
@@ -677,6 +806,12 @@
             chatPopupWindow.classList.add('chat-hidden'); // Hide chat popup
             chatHistory = []; // Clear chat history
             chatHistoryDiv.innerHTML = '';
+            lastPredictionText = ''; // Clear the last prediction text
+            
+            // Clear chat-specific attachments
+            chatBase64Image = null;
+            chatImageUpload.value = '';
+            chatImagePreviewContainer.classList.add('hidden');
         });
 
         // Floating chat popup toggle logic
@@ -694,6 +829,75 @@
             chatPopupWindow.classList.remove('chat-visible');
             chatPopupWindow.classList.add('chat-hidden');
         });
+        
+        // Function to show a temporary message for clipboard copy
+        function showCopyMessage() {
+            copyMessage.classList.add('show');
+            setTimeout(() => {
+                copyMessage.classList.remove('show');
+            }, 3000);
+        }
+
+        // Event listener for Save as PDF button
+        savePdfBtn.addEventListener('click', async () => {
+            if (!window.jspdf || !window.html2canvas) {
+                showError('PDF libraries not loaded. Please try again.');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const content = document.getElementById('prediction-output');
+            
+            // Disable buttons during PDF generation
+            savePdfBtn.disabled = true;
+            shareTextBtn.disabled = true;
+
+            try {
+                const canvas = await html2canvas(content, {
+                    scale: 2, // Increase scale for higher quality
+                    useCORS: true,
+                });
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgProps = pdf.getImageProperties(imgData);
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save('Dream11_Team_Prediction.pdf');
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                showError('Failed to generate PDF. Please try again.');
+            } finally {
+                // Re-enable buttons
+                savePdfBtn.disabled = false;
+                shareTextBtn.disabled = false;
+            }
+        });
+        
+        // Event listener for Share as Text button
+        shareTextBtn.addEventListener('click', () => {
+            if (lastPredictionText) {
+                const textToCopy = lastPredictionText.trim();
+                
+                // Copy to clipboard
+                const tempTextArea = document.createElement('textarea');
+                tempTextArea.value = textToCopy;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                try {
+                    document.execCommand('copy');
+                    showCopyMessage();
+                } catch (err) {
+                    console.error('Failed to copy text:', err);
+                    showError('Failed to copy text. Please copy manually.');
+                }
+                document.body.removeChild(tempTextArea);
+            } else {
+                showError('No team prediction to share yet.');
+            }
+        });
+
 
         // Generic API call function with exponential backoff
         async function callGeminiAPI(payload) {
@@ -745,6 +949,7 @@
             if (result && result.candidates && result.candidates.length > 0 &&
                 result.candidates[0].content && result.candidates[0].content.parts &&
                 result.candidates[0].content.parts.length > 0) {
+                // Return the text content from the response
                 return result.candidates[0].content.parts[0].text;
             } else {
                 throw new Error('Failed to get a valid response from the AI.');
