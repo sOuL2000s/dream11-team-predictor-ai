@@ -11,7 +11,7 @@
   # 'node-fetch' needs to be external if you use a Node.js version in Lambda that includes it,
   # or if you prefer it not to be bundled directly for smaller function sizes.
   # For newer node-fetch, it's safer to ensure it's installed in your root package.json for the function.
-  external_node_modules = ["node-fetch"]
+  # external_node_modules = ["node-fetch"]
 
 # Redirects are optional, but useful if you want to proxy requests cleanly
 [[redirects]]
