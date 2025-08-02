@@ -264,7 +264,7 @@
             padding: 1rem; /* 16px */
             border-radius: 1.5rem; /* 24px */
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            word-break: break-word;
+            word-break: break-word; /* Ensure long words break */
             transition: all 0.3s ease;
             transform: scale(0.95);
             transform-origin: bottom;
@@ -323,6 +323,144 @@
             opacity: 1;
             visibility: visible;
         }
+
+        /* --- New/Enhanced Styles for Chat AI Responses & Code Blocks --- */
+        
+        .chat-message.ai .ai-content-wrapper {
+            /* This wrapper is to facilitate better styling around markdown content */
+            padding: 0; /* Markdown adds its own spacing, so zero here */
+            margin: 0;
+        }
+        
+        /* General markdown styling within AI messages */
+        .chat-message.ai .ai-content-wrapper p,
+        .chat-message.ai .ai-content-wrapper ul,
+        .chat-message.ai .ai-content-wrapper ol,
+        .chat-message.ai .ai-content-wrapper h1,
+        .chat-message.ai .ai-content-wrapper h2,
+        .chat-message.ai .ai-content-wrapper h3,
+        .chat-message.ai .ai-content-wrapper blockquote {
+            margin-bottom: 1em;
+        }
+        .chat-message.ai .ai-content-wrapper p:last-child,
+        .chat-message.ai .ai-content-wrapper ul:last-child,
+        .chat-message.ai .ai-content-wrapper ol:last-child,
+        .chat-message.ai .ai-content-wrapper blockquote:last-child {
+            margin-bottom: 0;
+        }
+        .chat-message.ai .ai-content-wrapper ul,
+        .chat-message.ai .ai-content-wrapper ol {
+            padding-left: 1.5em; /* Standard list indent */
+        }
+        .chat-message.ai .ai-content-wrapper li {
+            margin-bottom: 0.5em;
+        }
+        .chat-message.ai .ai-content-wrapper strong {
+            font-weight: bold;
+            color: var(--accent-primary); /* Use primary accent for emphasis */
+        }
+        .chat-message.ai .ai-content-wrapper em {
+            font-style: italic;
+        }
+        .chat-message.ai .ai-content-wrapper blockquote {
+            border-left: 4px solid var(--accent-primary);
+            padding-left: 1em;
+            margin-left: 0;
+            color: var(--text-color-dark); /* Ensure readability in light/dark mode */
+        }
+        body.light .chat-message.ai .ai-content-wrapper blockquote {
+             color: #4b5563; /* Gray 700 */
+        }
+
+        /* Code block specific styling */
+        .code-block-container {
+            position: relative;
+            background-color: #27272a; /* Dark background for code */
+            color: #f8f8f2; /* Light text color for code */
+            border-radius: 0.75rem; /* Rounded corners */
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            overflow: hidden; /* Ensure rounded corners clip content */
+            border: 1px solid #3f3f46; /* Subtle border */
+        }
+        
+        .code-block-container pre {
+            margin: 0; /* Remove default margin from pre */
+            padding: 1rem;
+            overflow-x: auto; /* Horizontal scroll for long lines */
+            font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace; /* Monospaced font */
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .code-block-container code {
+            /* No specific styling for `code` inside `pre` as `pre` sets it */
+        }
+
+        .code-block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #374151; /* Header background */
+            color: #d1d5db; /* Header text */
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid #4b5563;
+            font-size: 0.85em;
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+        }
+
+        .code-block-copy-button {
+            background-color: transparent;
+            border: none;
+            color: #d1d5db;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.85em;
+        }
+        .code-block-copy-button:hover {
+            background-color: #4b5563;
+            color: white;
+        }
+        .code-block-copy-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Smallest font size for inline code blocks if any */
+        .chat-message.ai .ai-content-wrapper code:not(pre > code) {
+            background-color: rgba(100, 116, 139, 0.2); /* slategray-200 with transparency */
+            border-radius: 0.25rem;
+            padding: 0.2em 0.4em;
+            font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.9em;
+            color: #5b21b6; /* deep violet for inline code */
+        }
+        body.dark .chat-message.ai .ai-content-wrapper code:not(pre > code) {
+            background-color: rgba(100, 116, 139, 0.4);
+            color: #a78bfa; /* violet-400 */
+        }
+
+        /* Ensure links are distinguishable */
+        .chat-message.ai .ai-content-wrapper a {
+            color: var(--accent-primary);
+            text-decoration: underline;
+            transition: color 0.2s ease;
+        }
+        .chat-message.ai .ai-content-wrapper a:hover {
+            color: #0d47a1; /* Darker blue on hover */
+        }
+        body.dark .chat-message.ai .ai-content-wrapper a {
+            color: #60a5fa; /* Blue-400 */
+        }
+        body.dark .chat-message.ai .ai-content-wrapper a:hover {
+            color: #93c5fd; /* Blue-300 */
+        }
+
     </style>
 </head>
 <body class="antialiased dark">
@@ -573,6 +711,48 @@
             errorContainer.classList.remove('hidden');
         }
         
+        // --- Marked.js Custom Renderer for Code Blocks ---
+        const renderer = {
+            code(code, lang) {
+                // IMPORTANT FIX: If `code` is an object (a token object), use its `text` property.
+                // Otherwise, ensure it's converted to a string to prevent .replace() errors.
+                let actualCodeContent;
+                if (typeof code === 'object' && code !== null && typeof code.text === 'string') {
+                    console.warn('Marked.js code renderer received a token object, extracting text property.');
+                    actualCodeContent = code.text;
+                } else if (typeof code !== 'string') {
+                    console.warn('Marked.js code renderer received non-string content, converting to string:', code);
+                    actualCodeContent = String(code); // Fallback for other non-string cases
+                } else {
+                    actualCodeContent = code;
+                }
+
+                const languageDisplay = lang ? `<span class="text-xs">${lang.toUpperCase()}</span>` : '';
+                // Generate a unique ID for each code block
+                const uniqueId = `code-block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                
+                // Escape HTML entities in the code to display correctly within <pre><code>
+                const escapedCode = actualCodeContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+                return `
+                    <div class="code-block-container">
+                        <div class="code-block-header">
+                            ${languageDisplay}
+                            <button class="code-block-copy-button" data-copy-target="${uniqueId}">
+                                <i data-lucide="clipboard" class="w-4 h-4"></i>
+                                Copy code
+                            </button>
+                        </div>
+                        <pre><code id="${uniqueId}">${escapedCode}</code></pre>
+                    </div>
+                `;
+            }
+        };
+
+        // Set Marked.js options to use the custom renderer
+        marked.use({ renderer });
+
+
         // Function to append a message to the chat history
         function appendChatMessage(role, text, attachments = []) { // attachments is now an array of {mimeType, data, name}
             const messageDiv = document.createElement('div');
@@ -600,7 +780,8 @@
                     contentHTML += `</div>`;
                 }
             } else { // AI message
-                contentHTML = marked.parse(text);
+                // Render markdown content within a wrapper for better styling control
+                contentHTML = `<div class="ai-content-wrapper">${marked.parse(text)}</div>`;
             }
             
             messageDiv.innerHTML = contentHTML;
@@ -677,7 +858,8 @@
             chatToggleButton.classList.add('hidden'); // Hide the chat button during analysis
             chatPopupWindow.classList.add('chat-hidden'); // Hide the chat popup
 
-            const initialPrompt = "Act as a professional sports analyst for the fantasy sports platform Dream11. You are given a screenshot(s) containing information about an upcoming cricket match. Analyze all the text and images within the screenshot(s) to find key details such as player form, team news, pitch conditions, and recent performances. Based on your thorough analysis, provide the best possible Dream11 team, including a captain and vice-captain. Your output should be a single, well-structured text block that first lists the suggested team by player role (Wicket-keeper, Batsmen, All-rounders, Bowlers) and then provides a concise, point-form analysis explaining your choices. The analysis should be grounded in the data you extracted from the image. Use clear headings for each section (e.g., ## Team Analysis) and bullet points for lists (e.g., - Player Name).";
+            // Modified prompt to be very specific about markdown code blocks for code.
+            const initialPrompt = "Act as a professional sports analyst for the fantasy sports platform Dream11. You are given a screenshot(s) containing information about an upcoming cricket match. Analyze all the text and images within the screenshot(s) to find key details such as player form, team news, pitch conditions, and recent performances. Based on your thorough analysis, provide the best possible Dream11 team, including a captain and vice-captain. Your output should be a single, well-structured text block that first lists the suggested team by player role (Wicket-keeper, Batsmen, All-rounders, Bowlers) and then provides a concise, point-form analysis explaining your choices. The analysis should be grounded in the data you extracted from the image. Use clear headings for each section (e.g., ## Team Analysis) and bullet points for lists (e.g., - Player Name). IMPORTANT: If you provide any code, always wrap it in a markdown code block (e.g., ```html\n<p>Hello</p>\n``` or ```javascript\nconsole.log('hi');\n```).";
 
             try {
                 // Build the user parts for the initial image upload
@@ -714,7 +896,7 @@
                 // After analysis, show the chat and export buttons
                 chatToggleButton.classList.remove('hidden');
                 exportButtons.classList.remove('hidden');
-                appendChatMessage('ai', responseText);
+                appendChatMessage('ai', responseText); // Also append to chat history UI
                 chatInput.focus();
 
             } catch (error) {
@@ -776,17 +958,20 @@
             }
         }
 
-        // Event listener for removing individual chat attachments
+        // Event listener for removing individual chat attachments (using event delegation)
         chatAttachmentsPreviewContainer.addEventListener('click', (event) => {
-            if (event.target.closest('.remove-attachment-btn')) {
-                const attachmentDiv = event.target.closest('[data-index]');
-                const index = parseInt(attachmentDiv.dataset.index);
-                chatAttachments.splice(index, 1); // Remove from array
-                displayChatAttachments(); // Re-render preview
-                chatInput.focus();
+            const removeBtn = event.target.closest('.remove-attachment-btn');
+            if (removeBtn) {
+                const attachmentDiv = removeBtn.closest('[data-index]');
+                if (attachmentDiv) {
+                    const index = parseInt(attachmentDiv.dataset.index);
+                    chatAttachments.splice(index, 1); // Remove from array
+                    displayChatAttachments(); // Re-render preview
+                    chatInput.focus();
+                }
             }
         });
-
+        
         // Event listener for sending chat messages
         sendChatBtn.addEventListener('click', async () => {
             const userMessage = chatInput.value.trim();
@@ -997,6 +1182,54 @@
             }
         });
 
+        // Event delegation for copy code buttons within chat history
+        chatHistoryDiv.addEventListener('click', (event) => {
+            const copyButton = event.target.closest('.code-block-copy-button');
+            if (copyButton) {
+                const targetId = copyButton.dataset.copyTarget;
+                const codeElement = document.getElementById(targetId);
+                if (codeElement) {
+                    const codeToCopy = codeElement.textContent;
+                    // Use modern Clipboard API if available
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(codeToCopy)
+                            .then(() => {
+                                showCopyMessage();
+                                copyButton.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Copied!`;
+                                createIcons(); // Re-render icon
+                                setTimeout(() => {
+                                    copyButton.innerHTML = `<i data-lucide="clipboard" class="w-4 h-4"></i> Copy code`;
+                                    createIcons(); // Re-render icon
+                                }, 2000);
+                            })
+                            .catch(err => {
+                                console.error('Failed to copy code: ', err);
+                                showError('Failed to copy code. Please copy manually.');
+                            });
+                    } else {
+                        // Fallback for older browsers
+                        const tempTextArea = document.createElement('textarea');
+                        tempTextArea.value = codeToCopy;
+                        document.body.appendChild(tempTextArea);
+                        tempTextArea.select();
+                        try {
+                            document.execCommand('copy');
+                            showCopyMessage();
+                             copyButton.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Copied!`;
+                             createIcons(); // Re-render icon
+                             setTimeout(() => {
+                                 copyButton.innerHTML = `<i data-lucide="clipboard" class="w-4 h-4"></i> Copy code`;
+                                 createIcons(); // Re-render icon
+                             }, 2000);
+                        } catch (err) {
+                            console.error('Failed to copy code (fallback):', err);
+                            showError('Failed to copy code. Please copy manually.');
+                        }
+                        document.body.removeChild(tempTextArea);
+                    }
+                }
+            }
+        });
 
         // Generic API call function with exponential backoff
         async function callGeminiAPI(payload) {

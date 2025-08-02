@@ -1,284 +1,3 @@
-
---- START FILE: .gitignore ---
-
-node_modules/
-.env
-package-lock.json
-
-
---- END FILE: .gitignore ---
-
---- START FILE: combined.py ---
-
-import os
-
-def combine_files_to_single_file(root_dir, output_filename="combined_project_files.txt"):
-    """
-    Combines the content of all files in a directory into a single file,
-    excluding 'node_modules' directories and 'package-lock.json' files.
-
-    Args:
-        root_dir (str): The root directory of the project.
-        output_filename (str): The name of the output file.
-    """
-    combined_content = []
-    excluded_dirs = ['node_modules', '.git', '.vscode', '.idea', 'dist', 'build']
-    excluded_files = ['package-lock.json', 'yarn.lock', 'bun.lockb', '.env'] # Added .env as it might contain sensitive info
-
-    print(f"Starting to combine files from: {root_dir}")
-    print(f"Excluding directories: {excluded_dirs}")
-    print(f"Excluding files: {excluded_files}")
-
-    for dirpath, dirnames, filenames in os.walk(root_dir):
-        # Modify dirnames in-place to skip excluded directories
-        dirnames[:] = [d for d in dirnames if d not in excluded_dirs]
-
-        for filename in filenames:
-            if filename in excluded_files:
-                print(f"Skipping excluded file: {os.path.join(dirpath, filename)}")
-                continue
-
-            file_path = os.path.join(dirpath, filename)
-            # Make path relative to root_dir for the header
-            relative_file_path = os.path.relpath(file_path, root_dir)
-
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                
-                combined_content.append(f"\n--- START FILE: {relative_file_path} ---\n\n")
-                combined_content.append(content)
-                combined_content.append(f"\n\n--- END FILE: {relative_file_path} ---\n")
-                print(f"Included file: {relative_file_path}")
-            except UnicodeDecodeError:
-                print(f"Skipping binary or undecodable file (UnicodeDecodeError): {relative_file_path}")
-            except Exception as e:
-                print(f"Error reading file {relative_file_path}: {e}")
-
-    output_path = os.path.join(root_dir, output_filename)
-    try:
-        with open(output_path, 'w', encoding='utf-8') as outfile:
-            outfile.write("".join(combined_content))
-        print(f"\nSuccessfully combined all files into: {output_path}")
-    except Exception as e:
-        print(f"Error writing output file {output_path}: {e}")
-
-if __name__ == "__main__":
-    # Get the current working directory where the script is run
-    # This assumes you run the script from your project's root directory
-    project_root = os.getcwd()
-    combine_files_to_single_file(project_root)
-
-
---- END FILE: combined.py ---
-
---- START FILE: gemini-proxy.js ---
-
-// netlify/functions/gemini-proxy.js
-
-// Ensure you've added "type": "module" to your package.json
-// This allows you to use `import` syntax.
-import fetch from 'node-fetch';
-
-export async function handler(event, context) {
-    // Only allow POST requests
-    if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, body: 'Method Not Allowed' };
-    }
-
-    // Load API key from Netlify Environment Variables
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-    if (!GEMINI_API_KEY) {
-        console.error('GEMINI_API_KEY is not set in Netlify environment variables!');
-        return { statusCode: 500, body: 'Server configuration error: API Key missing.' };
-    }
-
-    try {
-        const geminiPayload = JSON.parse(event.body); // Parse the request body
-        
-        const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
-
-        const response = await fetch(geminiApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(geminiPayload),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error('Gemini API error:', errorData);
-            return {
-                statusCode: response.status,
-                body: JSON.stringify({ error: errorData.error?.message || 'Error from Gemini API' })
-            };
-        }
-
-        const data = await response.json();
-        
-        // Return Gemini's response to the client
-        return {
-            statusCode: 200,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        };
-
-    } catch (error) {
-        console.error('Function error:', error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: 'Internal server error processing request.' })
-        };
-    }
-}
-
---- END FILE: gemini-proxy.js ---
-
---- START FILE: netlify.toml ---
-
-[build]
-  publish = "public"          # Directory to publish for the static frontend
-  functions = "netlify/functions" # Directory where your functions are located
-
-[functions]
-  # Optional: For Node.js functions, 'esbuild' is often faster.
-  # If you face issues with require/import, ensure you're using 'module' type in package.json
-  # and import statements in your function file.
-  node_bundler = "esbuild"
-  # This tells esbuild not to bundle these modules into the lambda, assuming they are available in the Lambda environment.
-  # 'node-fetch' needs to be external if you use a Node.js version in Lambda that includes it,
-  # or if you prefer it not to be bundled directly for smaller function sizes.
-  # For newer node-fetch, it's safer to ensure it's installed in your root package.json for the function.
-  external_node_modules = ["node-fetch"]
-
-# Redirects are optional, but useful if you want to proxy requests cleanly
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat" # All /api/ requests go to functions
-  status = 200
-
---- END FILE: netlify.toml ---
-
---- START FILE: package.json ---
-
-{
-  "name": "dream-11-predictor",
-  "version": "1.0.0",
-  "description": "website link : https://dream11-ai-team-predictor.netlify.app/",
-  "type": "module",
-  "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.1",
-    "express": "^5.1.0",
-    "node-fetch": "^3.3.2"
-  }
-}
-
---- END FILE: package.json ---
-
---- START FILE: README.md ---
-
-website link : https://dream11-ai-team-predictor.netlify.app/
-
-
---- END FILE: README.md ---
-
---- START FILE: text-divider.py ---
-
-import tkinter as tk
-from tkinter import filedialog, messagebox
-import os
-
-def split_text_file(input_file, output_prefix="output", lines_per_file=500):
-    """
-    Divides a text file into smaller files, each with a specified number of lines
-    and a part number header at the top.
-    """
-    try:
-        # The fix is here: specify 'encoding="utf-8"'
-        with open(input_file, 'r', encoding="utf-8") as infile:
-            lines = infile.readlines()
-            total_lines = len(lines)
-            
-            # Calculate the number of files needed
-            num_files = (total_lines + lines_per_file - 1) // lines_per_file
-
-            # Create a directory to store the output files
-            output_dir = f"{output_prefix}_split_files"
-            os.makedirs(output_dir, exist_ok=True)
-            
-            print(f"Total lines found: {total_lines}")
-            print(f"Splitting into {num_files} files in the '{output_dir}' directory.")
-            print("-" * 30)
-
-            for i in range(num_files):
-                start_index = i * lines_per_file
-                end_index = min((i + 1) * lines_per_file, total_lines)
-                
-                # Create the output filename inside the new directory
-                output_file = os.path.join(output_dir, f"{output_prefix}_{i+1}.txt")
-                
-                # And here: specify 'encoding="utf-8"' for the output files as well
-                with open(output_file, 'w', encoding="utf-8") as outfile:
-                    # Write the part number header
-                    header = f"--- Part {i+1}/{num_files} ---\n"
-                    outfile.write(header)
-                    
-                    # Write the lines from the original file
-                    outfile.writelines(lines[start_index:end_index])
-                
-                print(f"Created file: {output_file} with lines from {start_index + 1} to {end_index}")
-            
-            messagebox.showinfo("Success", f"File splitting complete!\nCheck the '{output_dir}' folder.")
-
-    except FileNotFoundError:
-        messagebox.showerror("Error", f"The file '{input_file}' was not found.")
-    except Exception as e:
-        # This will now catch the UnicodeDecodeError and display the specific error
-        messagebox.showerror("An Error Occurred", f"An unexpected error occurred: {e}")
-
-# --- GUI CODE ---
-def browse_and_split():
-    """
-    Opens a file dialog for the user to select a text file and then calls the
-    splitting function.
-    """
-    root.withdraw()
-    
-    file_path = filedialog.askopenfilename(
-        title="Select a Text File to Split",
-        filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")]
-    )
-    
-    if file_path:
-        filename = os.path.basename(file_path)
-        filename_prefix = os.path.splitext(filename)[0]
-        split_text_file(file_path, output_prefix=filename_prefix, lines_per_file=500)
-    else:
-        messagebox.showinfo("Cancelled", "File selection was cancelled.")
-    
-    root.destroy()
-
-root = tk.Tk()
-root.title("Text File Splitter")
-browse_button = tk.Button(root, text="Browse for a File to Split", command=browse_and_split)
-browse_button.pack(padx=20, pady=20)
-root.mainloop()
-
---- END FILE: text-divider.py ---
-
---- START FILE: public\index.html ---
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -545,7 +264,7 @@ root.mainloop()
             padding: 1rem; /* 16px */
             border-radius: 1.5rem; /* 24px */
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            word-break: break-word;
+            word-break: break-word; /* Ensure long words break */
             transition: all 0.3s ease;
             transform: scale(0.95);
             transform-origin: bottom;
@@ -604,6 +323,215 @@ root.mainloop()
             opacity: 1;
             visibility: visible;
         }
+
+        /* --- New/Enhanced Styles for Chat AI Responses & Code Blocks --- */
+        
+        .chat-message.ai .ai-content-wrapper {
+            /* This wrapper is to facilitate better styling around markdown content */
+            padding: 0; /* Markdown adds its own spacing, so zero here */
+            margin: 0;
+        }
+        
+        /* General markdown styling within AI messages */
+        .chat-message.ai .ai-content-wrapper p,
+        .chat-message.ai .ai-content-wrapper ul,
+        .chat-message.ai .ai-content-wrapper ol,
+        .chat-message.ai .ai-content-wrapper h1,
+        .chat-message.ai .ai-content-wrapper h2,
+        .chat-message.ai .ai-content-wrapper h3,
+        .chat-message.ai .ai-content-wrapper blockquote {
+            margin-bottom: 1em;
+        }
+        .chat-message.ai .ai-content-wrapper p:last-child,
+        .chat-message.ai .ai-content-wrapper ul:last-child,
+        .chat-message.ai .ai-content-wrapper ol:last-child,
+        .chat-message.ai .ai-content-wrapper blockquote:last-child {
+            margin-bottom: 0;
+        }
+        .chat-message.ai .ai-content-wrapper ul,
+        .chat-message.ai .ai-content-wrapper ol {
+            padding-left: 1.5em; /* Standard list indent */
+        }
+        .chat-message.ai .ai-content-wrapper li {
+            margin-bottom: 0.5em;
+        }
+        .chat-message.ai .ai-content-wrapper strong {
+            font-weight: bold;
+            color: var(--accent-primary); /* Use primary accent for emphasis */
+        }
+        .chat-message.ai .ai-content-wrapper em {
+            font-style: italic;
+        }
+        .chat-message.ai .ai-content-wrapper blockquote {
+            border-left: 4px solid var(--accent-primary);
+            padding-left: 1em;
+            margin-left: 0;
+            color: var(--text-color-dark); /* Ensure readability in light/dark mode */
+        }
+        body.light .chat-message.ai .ai-content-wrapper blockquote {
+             color: #4b5563; /* Gray 700 */
+        }
+
+        /* Code block specific styling */
+        .code-block-container {
+            position: relative;
+            background-color: #27272a; /* Dark background for code */
+            color: #f8f8f2; /* Light text color for code */
+            border-radius: 0.75rem; /* Rounded corners */
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            overflow: hidden; /* Ensure rounded corners clip content */
+            border: 1px solid #3f3f46; /* Subtle border */
+        }
+        
+        .code-block-container pre {
+            margin: 0; /* Remove default margin from pre */
+            padding: 1rem;
+            overflow-x: auto; /* Horizontal scroll for long lines */
+            font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace; /* Monospaced font */
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .code-block-container code {
+            /* No specific styling for `code` inside `pre` as `pre` sets it */
+        }
+
+        .code-block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #374151; /* Header background */
+            color: #d1d5db; /* Header text */
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid #4b5563;
+            font-size: 0.85em;
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+        }
+
+        .code-block-copy-button {
+            background-color: transparent;
+            border: none;
+            color: #d1d5db;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.85em;
+        }
+        .code-block-copy-button:hover {
+            background-color: #4b5563;
+            color: white;
+        }
+        .code-block-copy-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Smallest font size for inline code blocks if any */
+        .chat-message.ai .ai-content-wrapper code:not(pre > code) {
+            background-color: rgba(100, 116, 139, 0.2); /* slategray-200 with transparency */
+            border-radius: 0.25rem;
+            padding: 0.2em 0.4em;
+            font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.9em;
+            color: #5b21b6; /* deep violet for inline code */
+        }
+        body.dark .chat-message.ai .ai-content-wrapper code:not(pre > code) {
+            background-color: rgba(100, 116, 139, 0.4);
+            color: #a78bfa; /* violet-400 */
+        }
+
+        /* Ensure links are distinguishable */
+        .chat-message.ai .ai-content-wrapper a {
+            color: var(--accent-primary);
+            text-decoration: underline;
+            transition: color 0.2s ease;
+        }
+        .chat-message.ai .ai-content-wrapper a:hover {
+            color: #0d47a1; /* Darker blue on hover */
+        }
+        body.dark .chat-message.ai .ai-content-wrapper a {
+            color: #60a5fa; /* Blue-400 */
+        }
+        body.dark .chat-message.ai .ai-content-wrapper a:hover {
+            color: #93c5fd; /* Blue-300 */
+        }
+
+        /* New: Copy button for each chat message */
+        .copy-chat-message-btn {
+            background-color: var(--card-bg-light);
+            border: 1px solid var(--border-color-light);
+            color: #6b7280; /* Gray 500 */
+            cursor: pointer;
+            padding: 0.4rem 0.6rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8em;
+            margin-top: 0.75rem; /* Space from message content */
+            align-self: flex-end; /* Align to the right in flex column */
+        }
+
+        .chat-message.user .copy-chat-message-btn {
+            background-color: #c9e6ff; /* Lighter blue for user message background */
+            border-color: #a7d9ff;
+            color: #3b82f6;
+        }
+
+        body.dark .chat-message.user .copy-chat-message-btn {
+            background-color: #3b5cb0;
+            border-color: #4f6fb8;
+            color: #e0e7ff;
+        }
+
+        body.dark .copy-chat-message-btn {
+            background-color: #374151; /* Darker gray for dark mode */
+            border-color: #4b5563;
+            color: #d1d5db;
+        }
+
+        .copy-chat-message-btn:hover {
+            background-color: #e5e7eb; /* Light gray on hover */
+            color: #374151; /* Darker text on hover */
+            border-color: #d1d5db;
+        }
+
+        .chat-message.user .copy-chat-message-btn:hover {
+            background-color: #a7d9ff; /* Even lighter blue on hover */
+            border-color: #8acaff;
+        }
+
+        body.dark .copy-chat-message-btn:hover {
+            background-color: #4b5563;
+            color: white;
+            border-color: #6b7280;
+        }
+
+        .copy-chat-message-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Ensure message content takes available space and copy button aligns */
+        .chat-message {
+            display: flex;
+            flex-direction: column; /* Stack content and button vertically */
+            align-items: flex-start; /* Default for AI */
+        }
+        .chat-message.user {
+            align-items: flex-end; /* Align user message content to the right */
+        }
+        /* Ensure the main content of the message fills space */
+        .chat-message > span,
+        .chat-message > .ai-content-wrapper {
+            width: 100%;
+        }
+
     </style>
 </head>
 <body class="antialiased dark">
@@ -706,7 +634,8 @@ root.mainloop()
     <!-- Floating Chat Popup -->
     <div id="chat-popup-container">
         <!-- Floating button to open the chat -->
-        <button id="chat-toggle-button" class="group hidden">
+        <!-- Removed 'chat-hidden' class to make the button visible by default -->
+        <button id="chat-toggle-button" class="group" aria-label="Open Chat with AI">
             <i data-lucide="message-square" class="w-6 h-6 text-white transition-transform duration-300 group-hover:rotate-12"></i>
             <span class="ml-2">Chat with AI</span>
         </button>
@@ -733,11 +662,13 @@ root.mainloop()
                     <!-- Attachments previews will be dynamically added here -->
                 </div>
                 <div class="flex gap-2">
+                    <!-- Removed 'disabled' attribute to make it interactive by default -->
                     <input type="text" id="chat-input" class="flex-1 p-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Ask a follow-up question...">
-                    <label for="chat-image-upload" class="flex items-center justify-center w-12 h-12 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer transition-all duration-300 flex-shrink-0">
-                        <i data-lucide="paperclip" class="w-5 h-5"></i> <!-- Changed icon to paperclip for general attachment -->
+                    <label for="chat-image-upload" class="flex items-center justify-center w-12 h-12 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer transition-all duration-300 flex-shrink-0" aria-label="Upload Attachment">
+                        <i data-lucide="paperclip" class="w-5 h-5"></i>
                     </label>
                     <input type="file" id="chat-image-upload" accept="image/*, .txt, .pdf, .csv, .json, .xml, .md" class="hidden" multiple>
+                    <!-- Removed 'disabled' attribute to make it interactive by default -->
                     <button id="send-chat-btn" aria-label="Send Message" class="flex items-center justify-center w-12 h-12 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 disabled:bg-indigo-400 disabled:cursor-not-allowed glow-button flex-shrink-0" style="--accent-primary: #1e88e5;">
                         <i data-lucide="send" class="w-5 h-5"></i>
                     </button>
@@ -845,6 +776,7 @@ root.mainloop()
             if (mimeType.includes('text/')) return 'file-text';
             if (mimeType.includes('csv') || mimeType.includes('excel')) return 'file-spreadsheet';
             if (mimeType.includes('json') || mimeType.includes('xml')) return 'file-code';
+            if (mimeType.includes('markdown') || mimeType.includes('md')) return 'file-text'; // For markdown files
             return 'file';
         }
 
@@ -854,8 +786,50 @@ root.mainloop()
             errorContainer.classList.remove('hidden');
         }
         
+        // --- Marked.js Custom Renderer for Code Blocks ---
+        const renderer = {
+            code(code, lang) {
+                // IMPORTANT FIX: If `code` is an object (a token object), use its `text` property.
+                // Otherwise, ensure it's converted to a string to prevent .replace() errors.
+                let actualCodeContent;
+                if (typeof code === 'object' && code !== null && typeof code.text === 'string') {
+                    // console.warn('Marked.js code renderer received a token object, extracting text property.');
+                    actualCodeContent = code.text;
+                } else if (typeof code !== 'string') {
+                    // console.warn('Marked.js code renderer received non-string content, converting to string:', code);
+                    actualCodeContent = String(code); // Fallback for other non-string cases
+                } else {
+                    actualCodeContent = code;
+                }
+
+                const languageDisplay = lang ? `<span class="text-xs">${lang.toUpperCase()}</span>` : '';
+                // Generate a unique ID for each code block
+                const uniqueId = `code-block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                
+                // Escape HTML entities in the code to display correctly within <pre><code>
+                const escapedCode = actualCodeContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+                return `
+                    <div class="code-block-container">
+                        <div class="code-block-header">
+                            ${languageDisplay}
+                            <button class="code-block-copy-button" data-copy-target="${uniqueId}" aria-label="Copy code to clipboard">
+                                <i data-lucide="clipboard" class="w-4 h-4"></i>
+                                Copy code
+                            </button>
+                        </div>
+                        <pre><code id="${uniqueId}">${escapedCode}</code></pre>
+                    </div>
+                `;
+            }
+        };
+
+        // Set Marked.js options to use the custom renderer
+        marked.use({ renderer });
+
+
         // Function to append a message to the chat history
-        function appendChatMessage(role, text, attachments = []) { // attachments is now an array of {mimeType, data, name}
+        function appendChatMessage(role, text, attachments = [], rawTextContent = '') { // rawTextContent added for copy functionality
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('chat-message', role);
             
@@ -881,10 +855,19 @@ root.mainloop()
                     contentHTML += `</div>`;
                 }
             } else { // AI message
-                contentHTML = marked.parse(text);
+                // Render markdown content within a wrapper for better styling control
+                contentHTML = `<div class="ai-content-wrapper">${marked.parse(text)}</div>`;
             }
             
-            messageDiv.innerHTML = contentHTML;
+            // Add the copy button to the message
+            const copyButtonHtml = `
+                <button class="copy-chat-message-btn" data-raw-text="${encodeURIComponent(rawTextContent || text)}" aria-label="Copy message to clipboard">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                    Copy
+                </button>
+            `;
+
+            messageDiv.innerHTML = contentHTML + copyButtonHtml;
             chatHistoryDiv.appendChild(messageDiv);
             
             // Animate message pop-in
@@ -905,6 +888,9 @@ root.mainloop()
                 uploadedMainImages = []; // Reset array
                 imagePreviewsContainer.innerHTML = ''; // Clear existing previews
                 previewContainer.classList.remove('hidden');
+                
+                errorContainer.classList.add('hidden'); // Clear previous errors
+                errorText.textContent = '';
                 
                 // Process each file
                 for (const file of files) {
@@ -928,11 +914,17 @@ root.mainloop()
                 analyzeBtn.disabled = uploadedMainImages.length === 0;
                 resultsContainer.classList.add('hidden'); // Hide previous results
                 exportButtons.classList.add('hidden'); // Hide export buttons
-                errorContainer.classList.add('hidden'); // Hide any previous errors
+                
                 chatHistory = []; // Clear chat history
                 chatHistoryDiv.innerHTML = '';
-                chatToggleButton.classList.add('hidden'); // Hide the chat button on new upload
+                chatToggleButton.classList.add('chat-hidden'); // Hide the chat button on new upload
                 chatPopupWindow.classList.add('chat-hidden'); // Hide the chat popup
+                // Removed explicit disabling of chatInput and sendChatBtn here to match previous behavior
+                chatInput.value = ''; // Clear chat input
+                chatAttachments = []; // Clear chat attachments
+                chatImageUpload.value = ''; // Clear chat file input
+                displayChatAttachments(); // Clear chat attachment previews
+                createIcons(); // Re-render icons after clearing
             } else {
                 previewContainer.classList.add('hidden');
                 analyzeBtn.disabled = true;
@@ -954,11 +946,15 @@ root.mainloop()
             predictionOutput.innerHTML = '';
             exportButtons.classList.add('hidden');
             errorContainer.classList.add('hidden');
-            
-            chatToggleButton.classList.add('hidden'); // Hide the chat button during analysis
-            chatPopupWindow.classList.add('chat-hidden'); // Hide the chat popup
+            errorText.textContent = ''; // Clear previous errors
 
-            const initialPrompt = "Act as a professional sports analyst for the fantasy sports platform Dream11. You are given a screenshot(s) containing information about an upcoming cricket match. Analyze all the text and images within the screenshot(s) to find key details such as player form, team news, pitch conditions, and recent performances. Based on your thorough analysis, provide the best possible Dream11 team, including a captain and vice-captain. Your output should be a single, well-structured text block that first lists the suggested team by player role (Wicket-keeper, Batsmen, All-rounders, Bowlers) and then provides a concise, point-form analysis explaining your choices. The analysis should be grounded in the data you extracted from the image. Use clear headings for each section (e.g., ## Team Analysis) and bullet points for lists (e.g., - Player Name).";
+            // Hide chat toggle button and popup during main analysis
+            chatToggleButton.classList.add('chat-hidden');
+            chatPopupWindow.classList.add('chat-hidden');
+            // Removed explicit disabling of chatInput and sendChatBtn here to match previous behavior
+
+            // Modified prompt to be very specific about markdown code blocks for code.
+            const initialPrompt = "Act as a professional sports analyst for the fantasy sports platform Dream11. You are given a screenshot(s) containing information about an upcoming cricket match. Analyze all the text and images within the screenshot(s) to find key details such as player form, team news, pitch conditions, and recent performances. Based on your thorough analysis, provide the best possible Dream11 team, including a captain and vice-captain. Your output should be a single, well-structured text block that first lists the suggested team by player role (Wicket-keeper, Batsmen, All-rounders, Bowlers) and then provides a concise, point-form analysis explaining your choices. The analysis should be grounded in the data you extracted from the image. Use clear headings for each section (e.g., ## Team Analysis) and bullet points for lists (e.g., - Player Name). IMPORTANT: If you provide any code, always wrap it in a markdown code block (e.g., ```html\n<p>Hello</p>\n``` or ```javascript\nconsole.log('hi');\n```).";
 
             try {
                 // Build the user parts for the initial image upload
@@ -993,10 +989,13 @@ root.mainloop()
                 ];
                 
                 // After analysis, show the chat and export buttons
-                chatToggleButton.classList.remove('hidden');
+                chatToggleButton.classList.remove('chat-hidden'); // Make chat button visible
                 exportButtons.classList.remove('hidden');
-                appendChatMessage('ai', responseText);
+                appendChatMessage('ai', responseText, [], responseText); // Also append to chat history UI, passing rawTextContent
+                
+                // Removed explicit enabling of chatInput and sendChatBtn here, as they are not disabled initially
                 chatInput.focus();
+                createIcons(); // Ensure all new icons are rendered
 
             } catch (error) {
                 console.error('Initial API call failed:', error);
@@ -1045,7 +1044,7 @@ root.mainloop()
                     attachmentDiv.innerHTML = `
                         ${previewContent}
                         <span class="truncate max-w-[100px]">${attachment.name}</span>
-                        <button class="remove-attachment-btn text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 ml-1">
+                        <button class="remove-attachment-btn text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 ml-1" aria-label="Remove attachment">
                             <i data-lucide="x" class="w-4 h-4"></i>
                         </button>
                     `;
@@ -1057,17 +1056,20 @@ root.mainloop()
             }
         }
 
-        // Event listener for removing individual chat attachments
+        // Event listener for removing individual chat attachments (using event delegation)
         chatAttachmentsPreviewContainer.addEventListener('click', (event) => {
-            if (event.target.closest('.remove-attachment-btn')) {
-                const attachmentDiv = event.target.closest('[data-index]');
-                const index = parseInt(attachmentDiv.dataset.index);
-                chatAttachments.splice(index, 1); // Remove from array
-                displayChatAttachments(); // Re-render preview
-                chatInput.focus();
+            const removeBtn = event.target.closest('.remove-attachment-btn');
+            if (removeBtn) {
+                const attachmentDiv = removeBtn.closest('[data-index]');
+                if (attachmentDiv) {
+                    const index = parseInt(attachmentDiv.dataset.index);
+                    chatAttachments.splice(index, 1); // Remove from array
+                    displayChatAttachments(); // Re-render preview
+                    chatInput.focus();
+                }
             }
         });
-
+        
         // Event listener for sending chat messages
         sendChatBtn.addEventListener('click', async () => {
             const userMessage = chatInput.value.trim();
@@ -1091,15 +1093,16 @@ root.mainloop()
 
             // Append user message and attachments to chat history and UI
             chatHistory.push({ role: 'user', parts: userParts });
-            appendChatMessage('user', userMessage, chatAttachments);
-            
+            appendChatMessage('user', userMessage, chatAttachments, userMessage); // Pass original user message for copy
+
             // Clear input and attachment after sending
             chatInput.value = '';
             chatAttachments = [];
             chatImageUpload.value = ''; // Clear file input
             displayChatAttachments(); // Clear attachment previews
             
-            sendChatBtn.disabled = true;
+            // Only sendChatBtn is disabled during API call to match previous behavior
+            sendChatBtn.disabled = true; 
             
             // Show loading indicator
             const loadingMessage = document.createElement('div');
@@ -1126,13 +1129,16 @@ root.mainloop()
                 
                 // Append AI response to chat history and UI
                 chatHistory.push({ role: 'model', parts: [{ text: responseText }] });
-                appendChatMessage('ai', responseText);
+                appendChatMessage('ai', responseText, [], responseText); // Pass original AI response for copy
                 
             } catch (error) {
                 console.error('Chat API call failed:', error);
                 showError(`An error occurred in the chat: ${error.message}`);
+                // Add an AI error message to chat history
+                appendChatMessage('ai', `An error occurred: ${error.message}. Please try again.`);
             } finally {
-                sendChatBtn.disabled = false;
+                // Re-enable send button
+                sendChatBtn.disabled = false; 
                 const loadingDiv = document.getElementById('chat-loading');
                 if (loadingDiv) {
                     loadingDiv.remove();
@@ -1143,7 +1149,7 @@ root.mainloop()
         
         // Add event listener for the 'Enter' key on the chat input
         chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !sendChatBtn.disabled) {
                 sendChatBtn.click();
             }
         });
@@ -1160,7 +1166,8 @@ root.mainloop()
             uploadedMainImages = []; // Clear main images
             errorContainer.classList.add('hidden');
             errorText.textContent = '';
-            chatToggleButton.classList.add('hidden'); // Hide chat button on clear
+            
+            chatToggleButton.classList.add('chat-hidden'); // Hide chat button on clear
             chatPopupWindow.classList.add('chat-hidden'); // Hide chat popup
             chatHistory = []; // Clear chat history
             chatHistoryDiv.innerHTML = '';
@@ -1170,11 +1177,14 @@ root.mainloop()
             chatAttachments = [];
             chatImageUpload.value = '';
             displayChatAttachments(); // Clear attachment previews
+            // Removed explicit disabling of chatInput and sendChatBtn here to match previous behavior
+            chatInput.value = ''; // Clear chat input
+            createIcons(); // Re-render icons after clearing
         });
 
         // Floating chat popup toggle logic
         chatToggleButton.addEventListener('click', () => {
-            chatToggleButton.classList.add('hidden');
+            chatToggleButton.classList.add('chat-hidden');
             chatPopupWindow.classList.remove('chat-hidden');
             chatPopupWindow.classList.add('chat-visible');
             chatInput.focus();
@@ -1183,7 +1193,7 @@ root.mainloop()
         });
 
         chatCloseButton.addEventListener('click', () => {
-            chatToggleButton.classList.remove('hidden');
+            chatToggleButton.classList.remove('chat-hidden');
             chatPopupWindow.classList.remove('chat-visible');
             chatPopupWindow.classList.add('chat-hidden');
         });
@@ -1214,34 +1224,35 @@ root.mainloop()
                 const canvas = await html2canvas(content, {
                     scale: 2, // Increase scale for higher quality
                     useCORS: true,
+                    // width: content.offsetWidth, // Explicitly set width to prevent scaling issues
+                    // height: content.offsetHeight
                 });
                 const imgData = canvas.toDataURL('image/png');
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const imgProps = pdf.getImageProperties(imgData);
-                const pdfWidth = pdf.internal.pageSize.getWidth();
+                
+                // Calculate scale to fit width while maintaining aspect ratio
+                const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // 10mm padding on each side
                 const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                const marginLeft = 10;
+                const marginTop = 10;
 
-                // Check if content fits on one page, otherwise create multiple pages
-                let currentY = 0;
-                const pageHeight = pdf.internal.pageSize.height;
-                const padding = 10; // Padding from page edges
+                let currentY = marginTop;
+                const pageHeight = pdf.internal.pageSize.height - 20; // 10mm padding top/bottom
 
+                // If content is taller than one page, split into multiple pages
                 if (pdfHeight > pageHeight) {
-                    let totalHeight = imgProps.height;
-                    let imgX = 0;
-                    let imgY = 0;
-                    let imgWidth = pdfWidth;
-
-                    while (totalHeight > 0) {
-                        pdf.addImage(imgData, 'PNG', imgX, imgY - currentY, imgWidth, pdfHeight);
-                        currentY += pageHeight;
-                        totalHeight -= pageHeight;
-                        if (totalHeight > 0) {
+                    let position = 0;
+                    while (position < imgProps.height) {
+                        if (position > 0) {
                             pdf.addPage();
                         }
+                        const imgHeightOnPage = Math.min(pageHeight, imgProps.height - position);
+                        pdf.addImage(imgData, 'PNG', marginLeft, marginTop - position * (pdfWidth / imgProps.width), pdfWidth, pdfHeight);
+                        position += imgHeightOnPage / (pdfWidth / imgProps.width); // Advance position based on actual image pixels
                     }
                 } else {
-                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    pdf.addImage(imgData, 'PNG', marginLeft, marginTop, pdfWidth, pdfHeight);
                 }
                 
                 pdf.save('Dream11_Team_Prediction.pdf');
@@ -1261,29 +1272,155 @@ root.mainloop()
                 const textToCopy = lastPredictionText.trim();
                 
                 // Copy to clipboard
-                const tempTextArea = document.createElement('textarea');
-                tempTextArea.value = textToCopy;
-                document.body.appendChild(tempTextArea);
-                tempTextArea.select();
-                try {
-                    document.execCommand('copy');
-                    showCopyMessage();
-                } catch (err) {
-                    console.error('Failed to copy text:', err);
-                    showError('Failed to copy text. Please copy manually.');
+                // Using navigator.clipboard.writeText is preferred for modern browsers
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(textToCopy)
+                        .then(() => {
+                            showCopyMessage();
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy text (Clipboard API):', err);
+                            // Fallback if Clipboard API fails (e.g., not in secure context or permissions)
+                            const tempTextArea = document.createElement('textarea');
+                            tempTextArea.value = textToCopy;
+                            document.body.appendChild(tempTextArea);
+                            tempTextArea.select();
+                            try {
+                                document.execCommand('copy');
+                                showCopyMessage();
+                            } catch (errFallback) {
+                                console.error('Failed to copy text (Fallback):', errFallback);
+                                showError('Failed to copy text. Please copy manually.');
+                            } finally {
+                                document.body.removeChild(tempTextArea);
+                            }
+                        });
+                } else {
+                    // Fallback for older browsers
+                    const tempTextArea = document.createElement('textarea');
+                    tempTextArea.value = textToCopy;
+                    document.body.appendChild(tempTextArea);
+                    tempTextArea.select();
+                    try {
+                        document.execCommand('copy');
+                        showCopyMessage();
+                    } catch (err) {
+                        console.error('Failed to copy text (Fallback):', err);
+                        showError('Failed to copy text. Please copy manually.');
+                    } finally {
+                        document.body.removeChild(tempTextArea);
+                    }
                 }
-                document.body.removeChild(tempTextArea);
             } else {
                 showError('No team prediction to share yet.');
             }
         });
 
+        // Event delegation for copy code buttons within chat history
+        chatHistoryDiv.addEventListener('click', (event) => {
+            const copyButton = event.target.closest('.code-block-copy-button');
+            if (copyButton) {
+                const targetId = copyButton.dataset.copyTarget;
+                const codeElement = document.getElementById(targetId);
+                if (codeElement) {
+                    const codeToCopy = codeElement.textContent;
+                    // Use modern Clipboard API if available
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(codeToCopy)
+                            .then(() => {
+                                showCopyMessage();
+                                copyButton.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Copied!`;
+                                createIcons(); // Re-render icon
+                                setTimeout(() => {
+                                    copyButton.innerHTML = `<i data-lucide="clipboard" class="w-4 h-4"></i> Copy code`;
+                                    createIcons(); // Re-render icon
+                                }, 2000);
+                            })
+                            .catch(err => {
+                                console.error('Failed to copy code: ', err);
+                                showError('Failed to copy code. Please copy manually.');
+                            });
+                    } else {
+                        // Fallback for older browsers
+                        const tempTextArea = document.createElement('textarea');
+                        tempTextArea.value = codeToCopy;
+                        document.body.appendChild(tempTextArea);
+                        tempTextArea.select();
+                        try {
+                            document.execCommand('copy');
+                            showCopyMessage();
+                             copyButton.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Copied!`;
+                             createIcons(); // Re-render icon
+                             setTimeout(() => {
+                                 copyButton.innerHTML = `<i data-lucide="clipboard" class="w-4 h-4"></i> Copy code`;
+                                 createIcons(); // Re-render icon
+                             }, 2000);
+                        } catch (err) {
+                            console.error('Failed to copy code (fallback):', err);
+                            showError('Failed to copy code. Please copy manually.');
+                        }
+                        document.body.removeChild(tempTextArea);
+                    }
+                }
+            }
 
-        // Generic API call function with exponential backoff (now targets your backend)
+            // New: Event delegation for copy chat message buttons
+            const chatMessageCopyButton = event.target.closest('.copy-chat-message-btn');
+            if (chatMessageCopyButton) {
+                // Decode the text that was stored as a URI component
+                const textToCopy = decodeURIComponent(chatMessageCopyButton.dataset.rawText);
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(textToCopy)
+                        .then(() => {
+                            showCopyMessage();
+                            chatMessageCopyButton.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Copied!`;
+                            createIcons();
+                            setTimeout(() => {
+                                chatMessageCopyButton.innerHTML = `<i data-lucide="copy" class="w-4 h-4"></i> Copy`;
+                                createIcons();
+                            }, 2000);
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy chat message: ', err);
+                            showError('Failed to copy message. Please copy manually.');
+                        });
+                } else {
+                    // Fallback for older browsers
+                    const tempTextArea = document.createElement('textarea');
+                    tempTextArea.value = textToCopy;
+                    document.body.appendChild(tempTextArea);
+                    tempTextArea.select();
+                    try {
+                        document.execCommand('copy');
+                        showCopyMessage();
+                        chatMessageCopyButton.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Copied!`;
+                        createIcons();
+                        setTimeout(() => {
+                            chatMessageCopyButton.innerHTML = `<i data-lucide="copy" class="w-4 h-4"></i> Copy`;
+                            createIcons();
+                        }, 2000);
+                    } catch (err) {
+                        console.error('Failed to copy chat message (fallback):', err);
+                        showError('Failed to copy message. Please copy manually.');
+                    } finally {
+                        document.body.removeChild(tempTextArea);
+                    }
+                }
+            }
+        });
+
+        // Generic API call function with exponential backoff
         async function callGeminiAPI(payload) {
-            // The API key is now managed by your backend server.
-            // The client-side simply calls your backend endpoint.
-            const apiUrl = '/.netlify/functions/gemini-proxy'; // This is the new endpoint on your server
+            // IMPORTANT: Replace with your actual Gemini API key. 
+            // Get it from Google AI Studio: https://aistudio.google.com/
+            const apiKey = "AIzaSyC7twxprKoApUjR4uebBS-12KVyZTkuvrw"; 
+            if (apiKey === "YOUR_GEMINI_API_KEY" || !apiKey || apiKey.length < 30) { // Added a length check for robustness
+                throw new Error("API Key is not set or invalid. Please replace 'YOUR_GEMINI_API_KEY' in the script with your actual API key.");
+            }
+
+            // Using gemini-2.5-flash-preview-05-20 as per the prompt instructions.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
             let response;
             let result;
@@ -1294,32 +1431,31 @@ root.mainloop()
 
             while (retryCount < maxRetries && !success) {
                 try {
-                    response = await fetch(apiUrl, { // Now calling your own server
+                    response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
 
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        // Your backend should handle the actual Gemini API retries and rate limits.
-                        // This client-side retry is primarily for network issues between the client and your backend.
-                        // Common retryable HTTP status codes from a proxy: 503 (Service Unavailable), 504 (Gateway Timeout), 429 (Too Many Requests, if backend forwards it)
-                        if ((response.status === 503 || response.status === 504 || response.status === 429) && retryCount < maxRetries - 1) {
-                            console.warn(`Backend error (${response.status}): ${errorData.error || 'Unknown error'}. Retrying in ${delay / 1000}s...`);
+                    if (response.status === 429) { // Too many requests
+                        if (retryCount < maxRetries - 1) {
+                            console.warn(`API rate limit exceeded. Retrying in ${delay / 1000}s...`);
                             await new Promise(res => setTimeout(res, delay));
                             delay *= 2; // Exponential backoff
                             retryCount++;
                         } else {
-                            throw new Error(`Backend error: ${response.status} ${response.statusText} - ${errorData.error || 'Unknown error from backend'}`);
+                            throw new Error('API rate limit exceeded. Please try again later.');
                         }
+                    } else if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`API error: ${response.status} ${response.statusText} - ${errorData.error?.message || 'Unknown error'}`);
                     } else {
                         result = await response.json();
                         success = true;
                     }
                 } catch (err) {
                     if (retryCount < maxRetries - 1) {
-                        console.warn(`Fetch error connecting to backend: ${err.message}. Retrying in ${delay / 1000}s...`);
+                        console.warn(`Fetch error: ${err.message}. Retrying in ${delay / 1000}s...`);
                         await new Promise(res => setTimeout(res, delay));
                         delay *= 2;
                         retryCount++;
@@ -1329,12 +1465,16 @@ root.mainloop()
                 }
             }
             
-            // The response structure should remain the same as the backend simply proxies Gemini's response
             if (result && result.candidates && result.candidates.length > 0 &&
                 result.candidates[0].content && result.candidates[0].content.parts &&
                 result.candidates[0].content.parts.length > 0) {
+                // Return the text content from the response
                 return result.candidates[0].content.parts[0].text;
             } else {
+                // Check if there are prompt feedback issues
+                if (result && result.promptFeedback && result.promptFeedback.blockReason) {
+                    throw new Error(`Content was blocked due to: ${result.promptFeedback.blockReason} - ${result.promptFeedback.safetyRatings?.map(r => `${r.category}: ${r.probability}`).join(', ')}`);
+                }
                 throw new Error('Failed to get a valid response from the AI. No candidates found or content is empty.');
             }
         }
@@ -1342,4 +1482,7 @@ root.mainloop()
 </body>
 </html>
 
---- END FILE: public\index.html ---
+-------------------------------------------------------------------------------------
+
+here why is the chat with ai playing hide and seek? answer me that much and tell me what to fix.
+another question, are all the other ai features perfect? answer me and if not then tell me how to fix them.
