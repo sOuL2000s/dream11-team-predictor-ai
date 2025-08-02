@@ -461,77 +461,6 @@
             color: #93c5fd; /* Blue-300 */
         }
 
-        /* New: Copy button for each chat message */
-        .copy-chat-message-btn {
-            background-color: var(--card-bg-light);
-            border: 1px solid var(--border-color-light);
-            color: #6b7280; /* Gray 500 */
-            cursor: pointer;
-            padding: 0.4rem 0.6rem;
-            border-radius: 0.5rem;
-            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-            font-size: 0.8em;
-            margin-top: 0.75rem; /* Space from message content */
-            align-self: flex-end; /* Align to the right in flex column */
-        }
-
-        .chat-message.user .copy-chat-message-btn {
-            background-color: #c9e6ff; /* Lighter blue for user message background */
-            border-color: #a7d9ff;
-            color: #3b82f6;
-        }
-
-        body.dark .chat-message.user .copy-chat-message-btn {
-            background-color: #3b5cb0;
-            border-color: #4f6fb8;
-            color: #e0e7ff;
-        }
-
-        body.dark .copy-chat-message-btn {
-            background-color: #374151; /* Darker gray for dark mode */
-            border-color: #4b5563;
-            color: #d1d5db;
-        }
-
-        .copy-chat-message-btn:hover {
-            background-color: #e5e7eb; /* Light gray on hover */
-            color: #374151; /* Darker text on hover */
-            border-color: #d1d5db;
-        }
-
-        .chat-message.user .copy-chat-message-btn:hover {
-            background-color: #a7d9ff; /* Even lighter blue on hover */
-            border-color: #8acaff;
-        }
-
-        body.dark .copy-chat-message-btn:hover {
-            background-color: #4b5563;
-            color: white;
-            border-color: #6b7280;
-        }
-
-        .copy-chat-message-btn:active {
-            transform: scale(0.98);
-        }
-
-        /* Ensure message content takes available space and copy button aligns */
-        .chat-message {
-            display: flex;
-            flex-direction: column; /* Stack content and button vertically */
-            align-items: flex-start; /* Default for AI */
-        }
-        .chat-message.user {
-            align-items: flex-end; /* Align user message content to the right */
-        }
-        /* Ensure the main content of the message fills space */
-        .chat-message > span,
-        .chat-message > .ai-content-wrapper {
-            width: 100%;
-        }
-
     </style>
 </head>
 <body class="antialiased dark">
@@ -634,8 +563,7 @@
     <!-- Floating Chat Popup -->
     <div id="chat-popup-container">
         <!-- Floating button to open the chat -->
-        <!-- Removed 'chat-hidden' class to make the button visible by default -->
-        <button id="chat-toggle-button" class="group" aria-label="Open Chat with AI">
+        <button id="chat-toggle-button" class="group hidden">
             <i data-lucide="message-square" class="w-6 h-6 text-white transition-transform duration-300 group-hover:rotate-12"></i>
             <span class="ml-2">Chat with AI</span>
         </button>
@@ -662,13 +590,11 @@
                     <!-- Attachments previews will be dynamically added here -->
                 </div>
                 <div class="flex gap-2">
-                    <!-- Removed 'disabled' attribute to make it interactive by default -->
                     <input type="text" id="chat-input" class="flex-1 p-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Ask a follow-up question...">
-                    <label for="chat-image-upload" class="flex items-center justify-center w-12 h-12 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer transition-all duration-300 flex-shrink-0" aria-label="Upload Attachment">
-                        <i data-lucide="paperclip" class="w-5 h-5"></i>
+                    <label for="chat-image-upload" class="flex items-center justify-center w-12 h-12 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer transition-all duration-300 flex-shrink-0">
+                        <i data-lucide="paperclip" class="w-5 h-5"></i> <!-- Changed icon to paperclip for general attachment -->
                     </label>
                     <input type="file" id="chat-image-upload" accept="image/*, .txt, .pdf, .csv, .json, .xml, .md" class="hidden" multiple>
-                    <!-- Removed 'disabled' attribute to make it interactive by default -->
                     <button id="send-chat-btn" aria-label="Send Message" class="flex items-center justify-center w-12 h-12 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 disabled:bg-indigo-400 disabled:cursor-not-allowed glow-button flex-shrink-0" style="--accent-primary: #1e88e5;">
                         <i data-lucide="send" class="w-5 h-5"></i>
                     </button>
@@ -776,7 +702,6 @@
             if (mimeType.includes('text/')) return 'file-text';
             if (mimeType.includes('csv') || mimeType.includes('excel')) return 'file-spreadsheet';
             if (mimeType.includes('json') || mimeType.includes('xml')) return 'file-code';
-            if (mimeType.includes('markdown') || mimeType.includes('md')) return 'file-text'; // For markdown files
             return 'file';
         }
 
@@ -793,10 +718,10 @@
                 // Otherwise, ensure it's converted to a string to prevent .replace() errors.
                 let actualCodeContent;
                 if (typeof code === 'object' && code !== null && typeof code.text === 'string') {
-                    // console.warn('Marked.js code renderer received a token object, extracting text property.');
+                    console.warn('Marked.js code renderer received a token object, extracting text property.');
                     actualCodeContent = code.text;
                 } else if (typeof code !== 'string') {
-                    // console.warn('Marked.js code renderer received non-string content, converting to string:', code);
+                    console.warn('Marked.js code renderer received non-string content, converting to string:', code);
                     actualCodeContent = String(code); // Fallback for other non-string cases
                 } else {
                     actualCodeContent = code;
@@ -813,7 +738,7 @@
                     <div class="code-block-container">
                         <div class="code-block-header">
                             ${languageDisplay}
-                            <button class="code-block-copy-button" data-copy-target="${uniqueId}" aria-label="Copy code to clipboard">
+                            <button class="code-block-copy-button" data-copy-target="${uniqueId}">
                                 <i data-lucide="clipboard" class="w-4 h-4"></i>
                                 Copy code
                             </button>
@@ -829,7 +754,7 @@
 
 
         // Function to append a message to the chat history
-        function appendChatMessage(role, text, attachments = [], rawTextContent = '') { // rawTextContent added for copy functionality
+        function appendChatMessage(role, text, attachments = []) { // attachments is now an array of {mimeType, data, name}
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('chat-message', role);
             
@@ -859,15 +784,7 @@
                 contentHTML = `<div class="ai-content-wrapper">${marked.parse(text)}</div>`;
             }
             
-            // Add the copy button to the message
-            const copyButtonHtml = `
-                <button class="copy-chat-message-btn" data-raw-text="${encodeURIComponent(rawTextContent || text)}" aria-label="Copy message to clipboard">
-                    <i data-lucide="copy" class="w-4 h-4"></i>
-                    Copy
-                </button>
-            `;
-
-            messageDiv.innerHTML = contentHTML + copyButtonHtml;
+            messageDiv.innerHTML = contentHTML;
             chatHistoryDiv.appendChild(messageDiv);
             
             // Animate message pop-in
@@ -888,9 +805,6 @@
                 uploadedMainImages = []; // Reset array
                 imagePreviewsContainer.innerHTML = ''; // Clear existing previews
                 previewContainer.classList.remove('hidden');
-                
-                errorContainer.classList.add('hidden'); // Clear previous errors
-                errorText.textContent = '';
                 
                 // Process each file
                 for (const file of files) {
@@ -914,17 +828,11 @@
                 analyzeBtn.disabled = uploadedMainImages.length === 0;
                 resultsContainer.classList.add('hidden'); // Hide previous results
                 exportButtons.classList.add('hidden'); // Hide export buttons
-                
+                errorContainer.classList.add('hidden'); // Hide any previous errors
                 chatHistory = []; // Clear chat history
                 chatHistoryDiv.innerHTML = '';
-                chatToggleButton.classList.add('chat-hidden'); // Hide the chat button on new upload
+                chatToggleButton.classList.add('hidden'); // Hide the chat button on new upload
                 chatPopupWindow.classList.add('chat-hidden'); // Hide the chat popup
-                // Removed explicit disabling of chatInput and sendChatBtn here to match previous behavior
-                chatInput.value = ''; // Clear chat input
-                chatAttachments = []; // Clear chat attachments
-                chatImageUpload.value = ''; // Clear chat file input
-                displayChatAttachments(); // Clear chat attachment previews
-                createIcons(); // Re-render icons after clearing
             } else {
                 previewContainer.classList.add('hidden');
                 analyzeBtn.disabled = true;
@@ -946,12 +854,9 @@
             predictionOutput.innerHTML = '';
             exportButtons.classList.add('hidden');
             errorContainer.classList.add('hidden');
-            errorText.textContent = ''; // Clear previous errors
-
-            // Hide chat toggle button and popup during main analysis
-            chatToggleButton.classList.add('chat-hidden');
-            chatPopupWindow.classList.add('chat-hidden');
-            // Removed explicit disabling of chatInput and sendChatBtn here to match previous behavior
+            
+            chatToggleButton.classList.add('hidden'); // Hide the chat button during analysis
+            chatPopupWindow.classList.add('chat-hidden'); // Hide the chat popup
 
             // Modified prompt to be very specific about markdown code blocks for code.
             const initialPrompt = "Act as a professional sports analyst for the fantasy sports platform Dream11. You are given a screenshot(s) containing information about an upcoming cricket match. Analyze all the text and images within the screenshot(s) to find key details such as player form, team news, pitch conditions, and recent performances. Based on your thorough analysis, provide the best possible Dream11 team, including a captain and vice-captain. Your output should be a single, well-structured text block that first lists the suggested team by player role (Wicket-keeper, Batsmen, All-rounders, Bowlers) and then provides a concise, point-form analysis explaining your choices. The analysis should be grounded in the data you extracted from the image. Use clear headings for each section (e.g., ## Team Analysis) and bullet points for lists (e.g., - Player Name). IMPORTANT: If you provide any code, always wrap it in a markdown code block (e.g., ```html\n<p>Hello</p>\n``` or ```javascript\nconsole.log('hi');\n```).";
@@ -989,13 +894,10 @@
                 ];
                 
                 // After analysis, show the chat and export buttons
-                chatToggleButton.classList.remove('chat-hidden'); // Make chat button visible
+                chatToggleButton.classList.remove('hidden');
                 exportButtons.classList.remove('hidden');
-                appendChatMessage('ai', responseText, [], responseText); // Also append to chat history UI, passing rawTextContent
-                
-                // Removed explicit enabling of chatInput and sendChatBtn here, as they are not disabled initially
+                appendChatMessage('ai', responseText); // Also append to chat history UI
                 chatInput.focus();
-                createIcons(); // Ensure all new icons are rendered
 
             } catch (error) {
                 console.error('Initial API call failed:', error);
@@ -1044,7 +946,7 @@
                     attachmentDiv.innerHTML = `
                         ${previewContent}
                         <span class="truncate max-w-[100px]">${attachment.name}</span>
-                        <button class="remove-attachment-btn text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 ml-1" aria-label="Remove attachment">
+                        <button class="remove-attachment-btn text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 ml-1">
                             <i data-lucide="x" class="w-4 h-4"></i>
                         </button>
                     `;
@@ -1093,16 +995,15 @@
 
             // Append user message and attachments to chat history and UI
             chatHistory.push({ role: 'user', parts: userParts });
-            appendChatMessage('user', userMessage, chatAttachments, userMessage); // Pass original user message for copy
-
+            appendChatMessage('user', userMessage, chatAttachments);
+            
             // Clear input and attachment after sending
             chatInput.value = '';
             chatAttachments = [];
             chatImageUpload.value = ''; // Clear file input
             displayChatAttachments(); // Clear attachment previews
             
-            // Only sendChatBtn is disabled during API call to match previous behavior
-            sendChatBtn.disabled = true; 
+            sendChatBtn.disabled = true;
             
             // Show loading indicator
             const loadingMessage = document.createElement('div');
@@ -1129,16 +1030,13 @@
                 
                 // Append AI response to chat history and UI
                 chatHistory.push({ role: 'model', parts: [{ text: responseText }] });
-                appendChatMessage('ai', responseText, [], responseText); // Pass original AI response for copy
+                appendChatMessage('ai', responseText);
                 
             } catch (error) {
                 console.error('Chat API call failed:', error);
                 showError(`An error occurred in the chat: ${error.message}`);
-                // Add an AI error message to chat history
-                appendChatMessage('ai', `An error occurred: ${error.message}. Please try again.`);
             } finally {
-                // Re-enable send button
-                sendChatBtn.disabled = false; 
+                sendChatBtn.disabled = false;
                 const loadingDiv = document.getElementById('chat-loading');
                 if (loadingDiv) {
                     loadingDiv.remove();
@@ -1149,7 +1047,7 @@
         
         // Add event listener for the 'Enter' key on the chat input
         chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !sendChatBtn.disabled) {
+            if (e.key === 'Enter') {
                 sendChatBtn.click();
             }
         });
@@ -1166,8 +1064,7 @@
             uploadedMainImages = []; // Clear main images
             errorContainer.classList.add('hidden');
             errorText.textContent = '';
-            
-            chatToggleButton.classList.add('chat-hidden'); // Hide chat button on clear
+            chatToggleButton.classList.add('hidden'); // Hide chat button on clear
             chatPopupWindow.classList.add('chat-hidden'); // Hide chat popup
             chatHistory = []; // Clear chat history
             chatHistoryDiv.innerHTML = '';
@@ -1177,14 +1074,11 @@
             chatAttachments = [];
             chatImageUpload.value = '';
             displayChatAttachments(); // Clear attachment previews
-            // Removed explicit disabling of chatInput and sendChatBtn here to match previous behavior
-            chatInput.value = ''; // Clear chat input
-            createIcons(); // Re-render icons after clearing
         });
 
         // Floating chat popup toggle logic
         chatToggleButton.addEventListener('click', () => {
-            chatToggleButton.classList.add('chat-hidden');
+            chatToggleButton.classList.add('hidden');
             chatPopupWindow.classList.remove('chat-hidden');
             chatPopupWindow.classList.add('chat-visible');
             chatInput.focus();
@@ -1193,7 +1087,7 @@
         });
 
         chatCloseButton.addEventListener('click', () => {
-            chatToggleButton.classList.remove('chat-hidden');
+            chatToggleButton.classList.remove('hidden');
             chatPopupWindow.classList.remove('chat-visible');
             chatPopupWindow.classList.add('chat-hidden');
         });
@@ -1224,35 +1118,34 @@
                 const canvas = await html2canvas(content, {
                     scale: 2, // Increase scale for higher quality
                     useCORS: true,
-                    // width: content.offsetWidth, // Explicitly set width to prevent scaling issues
-                    // height: content.offsetHeight
                 });
                 const imgData = canvas.toDataURL('image/png');
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const imgProps = pdf.getImageProperties(imgData);
-                
-                // Calculate scale to fit width while maintaining aspect ratio
-                const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // 10mm padding on each side
+                const pdfWidth = pdf.internal.pageSize.getWidth();
                 const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                const marginLeft = 10;
-                const marginTop = 10;
 
-                let currentY = marginTop;
-                const pageHeight = pdf.internal.pageSize.height - 20; // 10mm padding top/bottom
+                // Check if content fits on one page, otherwise create multiple pages
+                let currentY = 0;
+                const pageHeight = pdf.internal.pageSize.height;
+                const padding = 10; // Padding from page edges
 
-                // If content is taller than one page, split into multiple pages
                 if (pdfHeight > pageHeight) {
-                    let position = 0;
-                    while (position < imgProps.height) {
-                        if (position > 0) {
+                    let totalHeight = imgProps.height;
+                    let imgX = 0;
+                    let imgY = 0;
+                    let imgWidth = pdfWidth;
+
+                    while (totalHeight > 0) {
+                        pdf.addImage(imgData, 'PNG', imgX, imgY - currentY, imgWidth, pdfHeight);
+                        currentY += pageHeight;
+                        totalHeight -= pageHeight;
+                        if (totalHeight > 0) {
                             pdf.addPage();
                         }
-                        const imgHeightOnPage = Math.min(pageHeight, imgProps.height - position);
-                        pdf.addImage(imgData, 'PNG', marginLeft, marginTop - position * (pdfWidth / imgProps.width), pdfWidth, pdfHeight);
-                        position += imgHeightOnPage / (pdfWidth / imgProps.width); // Advance position based on actual image pixels
                     }
                 } else {
-                    pdf.addImage(imgData, 'PNG', marginLeft, marginTop, pdfWidth, pdfHeight);
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
                 }
                 
                 pdf.save('Dream11_Team_Prediction.pdf');
@@ -1272,45 +1165,18 @@
                 const textToCopy = lastPredictionText.trim();
                 
                 // Copy to clipboard
-                // Using navigator.clipboard.writeText is preferred for modern browsers
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(textToCopy)
-                        .then(() => {
-                            showCopyMessage();
-                        })
-                        .catch(err => {
-                            console.error('Failed to copy text (Clipboard API):', err);
-                            // Fallback if Clipboard API fails (e.g., not in secure context or permissions)
-                            const tempTextArea = document.createElement('textarea');
-                            tempTextArea.value = textToCopy;
-                            document.body.appendChild(tempTextArea);
-                            tempTextArea.select();
-                            try {
-                                document.execCommand('copy');
-                                showCopyMessage();
-                            } catch (errFallback) {
-                                console.error('Failed to copy text (Fallback):', errFallback);
-                                showError('Failed to copy text. Please copy manually.');
-                            } finally {
-                                document.body.removeChild(tempTextArea);
-                            }
-                        });
-                } else {
-                    // Fallback for older browsers
-                    const tempTextArea = document.createElement('textarea');
-                    tempTextArea.value = textToCopy;
-                    document.body.appendChild(tempTextArea);
-                    tempTextArea.select();
-                    try {
-                        document.execCommand('copy');
-                        showCopyMessage();
-                    } catch (err) {
-                        console.error('Failed to copy text (Fallback):', err);
-                        showError('Failed to copy text. Please copy manually.');
-                    } finally {
-                        document.body.removeChild(tempTextArea);
-                    }
+                const tempTextArea = document.createElement('textarea');
+                tempTextArea.value = textToCopy;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                try {
+                    document.execCommand('copy');
+                    showCopyMessage();
+                } catch (err) {
+                    console.error('Failed to copy text:', err);
+                    showError('Failed to copy text. Please copy manually.');
                 }
+                document.body.removeChild(tempTextArea);
             } else {
                 showError('No team prediction to share yet.');
             }
@@ -1363,63 +1229,16 @@
                     }
                 }
             }
-
-            // New: Event delegation for copy chat message buttons
-            const chatMessageCopyButton = event.target.closest('.copy-chat-message-btn');
-            if (chatMessageCopyButton) {
-                // Decode the text that was stored as a URI component
-                const textToCopy = decodeURIComponent(chatMessageCopyButton.dataset.rawText);
-
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(textToCopy)
-                        .then(() => {
-                            showCopyMessage();
-                            chatMessageCopyButton.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Copied!`;
-                            createIcons();
-                            setTimeout(() => {
-                                chatMessageCopyButton.innerHTML = `<i data-lucide="copy" class="w-4 h-4"></i> Copy`;
-                                createIcons();
-                            }, 2000);
-                        })
-                        .catch(err => {
-                            console.error('Failed to copy chat message: ', err);
-                            showError('Failed to copy message. Please copy manually.');
-                        });
-                } else {
-                    // Fallback for older browsers
-                    const tempTextArea = document.createElement('textarea');
-                    tempTextArea.value = textToCopy;
-                    document.body.appendChild(tempTextArea);
-                    tempTextArea.select();
-                    try {
-                        document.execCommand('copy');
-                        showCopyMessage();
-                        chatMessageCopyButton.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Copied!`;
-                        createIcons();
-                        setTimeout(() => {
-                            chatMessageCopyButton.innerHTML = `<i data-lucide="copy" class="w-4 h-4"></i> Copy`;
-                            createIcons();
-                        }, 2000);
-                    } catch (err) {
-                        console.error('Failed to copy chat message (fallback):', err);
-                        showError('Failed to copy message. Please copy manually.');
-                    } finally {
-                        document.body.removeChild(tempTextArea);
-                    }
-                }
-            }
         });
 
         // Generic API call function with exponential backoff
         async function callGeminiAPI(payload) {
-            // IMPORTANT: Replace with your actual Gemini API key. 
-            // Get it from Google AI Studio: https://aistudio.google.com/
+            // Replace with your actual API key
             const apiKey = "AIzaSyC7twxprKoApUjR4uebBS-12KVyZTkuvrw"; 
-            if (apiKey === "YOUR_GEMINI_API_KEY" || !apiKey || apiKey.length < 30) { // Added a length check for robustness
-                throw new Error("API Key is not set or invalid. Please replace 'YOUR_GEMINI_API_KEY' in the script with your actual API key.");
+            if (apiKey === "YOUR_GEMINI_API_KEY" || !apiKey) {
+                throw new Error("API Key is not set. Please replace 'YOUR_GEMINI_API_KEY' in the script.");
             }
 
-            // Using gemini-2.5-flash-preview-05-20 as per the prompt instructions.
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
             let response;
@@ -1471,10 +1290,6 @@
                 // Return the text content from the response
                 return result.candidates[0].content.parts[0].text;
             } else {
-                // Check if there are prompt feedback issues
-                if (result && result.promptFeedback && result.promptFeedback.blockReason) {
-                    throw new Error(`Content was blocked due to: ${result.promptFeedback.blockReason} - ${result.promptFeedback.safetyRatings?.map(r => `${r.category}: ${r.probability}`).join(', ')}`);
-                }
                 throw new Error('Failed to get a valid response from the AI. No candidates found or content is empty.');
             }
         }
@@ -1482,7 +1297,10 @@
 </body>
 </html>
 
--------------------------------------------------------------------------------------
+----------------------------------------------------------------------------
 
-here why is the chat with ai playing hide and seek? answer me that much and tell me what to fix.
-another question, are all the other ai features perfect? answer me and if not then tell me how to fix them.
+do the following and send me the full updated code : 
+
+add a copy button at the end of every text message. (just like chatgpt)
+add a dictate button beside the copy button under every text message. (just like chatgpt)
+improve the design of the website.
