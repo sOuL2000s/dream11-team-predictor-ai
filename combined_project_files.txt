@@ -269,6 +269,8 @@
             transform: scale(0.95);
             transform-origin: bottom;
             max-width: 85%;
+            position: relative; /* For action buttons */
+            padding-bottom: 2.5rem; /* Make space for action buttons */
         }
 
         .chat-message.user {
@@ -326,49 +328,49 @@
 
         /* --- New/Enhanced Styles for Chat AI Responses & Code Blocks --- */
         
-        .chat-message.ai .ai-content-wrapper {
+        .chat-message .message-content {
             /* This wrapper is to facilitate better styling around markdown content */
             padding: 0; /* Markdown adds its own spacing, so zero here */
             margin: 0;
         }
         
         /* General markdown styling within AI messages */
-        .chat-message.ai .ai-content-wrapper p,
-        .chat-message.ai .ai-content-wrapper ul,
-        .chat-message.ai .ai-content-wrapper ol,
-        .chat-message.ai .ai-content-wrapper h1,
-        .chat-message.ai .ai-content-wrapper h2,
-        .chat-message.ai .ai-content-wrapper h3,
-        .chat-message.ai .ai-content-wrapper blockquote {
+        .chat-message.ai .message-content p,
+        .chat-message.ai .message-content ul,
+        .chat-message.ai .message-content ol,
+        .chat-message.ai .message-content h1,
+        .chat-message.ai .message-content h2,
+        .chat-message.ai .message-content h3,
+        .chat-message.ai .message-content blockquote {
             margin-bottom: 1em;
         }
-        .chat-message.ai .ai-content-wrapper p:last-child,
-        .chat-message.ai .ai-content-wrapper ul:last-child,
-        .chat-message.ai .ai-content-wrapper ol:last-child,
-        .chat-message.ai .ai-content-wrapper blockquote:last-child {
+        .chat-message.ai .message-content p:last-child,
+        .chat-message.ai .message-content ul:last-child,
+        .chat-message.ai .message-content ol:last-child,
+        .chat-message.ai .message-content blockquote:last-child {
             margin-bottom: 0;
         }
-        .chat-message.ai .ai-content-wrapper ul,
-        .chat-message.ai .ai-content-wrapper ol {
+        .chat-message.ai .message-content ul,
+        .chat-message.ai .message-content ol {
             padding-left: 1.5em; /* Standard list indent */
         }
-        .chat-message.ai .ai-content-wrapper li {
+        .chat-message.ai .message-content li {
             margin-bottom: 0.5em;
         }
-        .chat-message.ai .ai-content-wrapper strong {
+        .chat-message.ai .message-content strong {
             font-weight: bold;
             color: var(--accent-primary); /* Use primary accent for emphasis */
         }
-        .chat-message.ai .ai-content-wrapper em {
+        .chat-message.ai .message-content em {
             font-style: italic;
         }
-        .chat-message.ai .ai-content-wrapper blockquote {
+        .chat-message.ai .message-content blockquote {
             border-left: 4px solid var(--accent-primary);
             padding-left: 1em;
             margin-left: 0;
             color: var(--text-color-dark); /* Ensure readability in light/dark mode */
         }
-        body.light .chat-message.ai .ai-content-wrapper blockquote {
+        body.light .chat-message.ai .message-content blockquote {
              color: #4b5563; /* Gray 700 */
         }
 
@@ -432,7 +434,7 @@
         }
 
         /* Smallest font size for inline code blocks if any */
-        .chat-message.ai .ai-content-wrapper code:not(pre > code) {
+        .chat-message.ai .message-content code:not(pre > code) {
             background-color: rgba(100, 116, 139, 0.2); /* slategray-200 with transparency */
             border-radius: 0.25rem;
             padding: 0.2em 0.4em;
@@ -440,25 +442,92 @@
             font-size: 0.9em;
             color: #5b21b6; /* deep violet for inline code */
         }
-        body.dark .chat-message.ai .ai-content-wrapper code:not(pre > code) {
+        body.dark .chat-message.ai .message-content code:not(pre > code) {
             background-color: rgba(100, 116, 139, 0.4);
             color: #a78bfa; /* violet-400 */
         }
 
         /* Ensure links are distinguishable */
-        .chat-message.ai .ai-content-wrapper a {
+        .chat-message.ai .message-content a {
             color: var(--accent-primary);
             text-decoration: underline;
             transition: color 0.2s ease;
         }
-        .chat-message.ai .ai-content-wrapper a:hover {
+        .chat-message.ai .message-content a:hover {
             color: #0d47a1; /* Darker blue on hover */
         }
-        body.dark .chat-message.ai .ai-content-wrapper a {
+        body.dark .chat-message.ai .message-content a {
             color: #60a5fa; /* Blue-400 */
         }
-        body.dark .chat-message.ai .ai-content-wrapper a:hover {
+        body.dark .chat-message.ai .message-content a:hover {
             color: #93c5fd; /* Blue-300 */
+        }
+
+        /* Styles for message action buttons (copy/dictate) */
+        .message-actions {
+            position: absolute;
+            bottom: 0.5rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background-color: rgba(255, 255, 255, 0.6); /* Semi-transparent background */
+            border-radius: 0.75rem;
+            backdrop-filter: blur(5px); /* Frosted glass effect */
+            transition: opacity 0.3s ease;
+            opacity: 0; /* Hidden by default */
+            z-index: 10;
+        }
+
+        .chat-message:hover .message-actions {
+            opacity: 1; /* Show on message hover */
+        }
+
+        body.dark .message-actions {
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .message-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            display: flex; /* To center icon */
+            align-items: center;
+            justify-content: center;
+        }
+
+        .message-actions button .lucide { /* Target the SVG element directly for color */
+            color: #6b7280; /* Gray 500 */
+            width: 1rem;
+            height: 1rem;
+        }
+        body.dark .message-actions button .lucide {
+            color: #9ca3af; /* Gray 400 */
+        }
+
+        .message-actions button:hover .lucide {
+            color: #1f2937; /* Gray 900 */
+        }
+        body.dark .message-actions button:hover .lucide {
+            color: #e5e7eb; /* Gray 200 */
+        }
+        .message-actions button:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        body.dark .message-actions button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-message.user .message-actions {
+            right: 1rem;
+            left: auto;
+        }
+        .chat-message.ai .message-actions {
+            left: 1rem;
+            right: auto;
         }
 
     </style>
@@ -466,7 +535,7 @@
 <body class="antialiased dark">
 
     <!-- Main container with fluid padding for responsiveness -->
-    <div class="container mx-auto p-4 md:p-8 lg:p-12 min-h-screen flex items-center justify-center">
+    <div class="container mx-auto p-4 md:p-8 lg:p-12 min-h-screen flex items-start justify-center">
         <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-10 lg:p-12 border border-gray-100 transition-colors duration-300 w-full max-w-6xl glow-border">
             
             <!-- Header Section with Dark Mode Toggle -->
@@ -495,10 +564,10 @@
                 <div class="flex-1">
                     
                     <!-- Upload and Preview Section -->
-                    <div class="bg-gray-50 rounded-2xl p-6 sm:p-8 mb-4 border-2 border-dashed border-gray-200 transition-all duration-300 hover:bg-gray-100">
+                    <div class="bg-gray-50 rounded-2xl p-6 sm:p-8 mb-4 border-2 border-dashed border-gray-200 transition-all duration-300 hover:bg-gray-100 hover:border-indigo-400">
                         <label for="image-upload" class="cursor-pointer block">
                             <div class="flex flex-col items-center justify-center p-4 sm:p-6 text-center">
-                                <i data-lucide="upload-cloud" class="w-12 h-12 sm:w-14 sm:h-14 text-indigo-500 animate-pulse"></i>
+                                <span data-lucide="upload-cloud" class="w-12 h-12 sm:w-14 sm:h-14 text-indigo-500 animate-pulse"></span>
                                 <p class="mt-4 text-sm text-gray-600">
                                     <span class="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
                                         Click to upload
@@ -548,10 +617,10 @@
                         <!-- New buttons for PDF and Text Export -->
                         <div id="export-buttons" class="mt-4 flex flex-col sm:flex-row gap-4 hidden">
                             <button id="save-pdf-btn" class="flex-1 py-3 px-6 sm:py-4 sm:px-8 rounded-full bg-green-500 text-white font-bold shadow-lg hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300 transition-all duration-300 transform hover:scale-105">
-                                <i data-lucide="file-text" class="w-5 h-5 mr-2 inline-block"></i> Save as PDF
+                                <span data-lucide="file-text" class="w-5 h-5 mr-2 inline-block"></span> Save as PDF
                             </button>
                             <button id="share-text-btn" class="flex-1 py-3 px-6 sm:py-4 sm:px-8 rounded-full bg-blue-500 text-white font-bold shadow-lg hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105">
-                                <i data-lucide="share-2" class="w-5 h-5 mr-2 inline-block"></i> Share as Text
+                                <span data-lucide="share-2" class="w-5 h-5 mr-2 inline-block"></span> Share as Text
                             </button>
                         </div>
                     </div>
@@ -563,8 +632,8 @@
     <!-- Floating Chat Popup -->
     <div id="chat-popup-container">
         <!-- Floating button to open the chat -->
-        <button id="chat-toggle-button" class="group hidden">
-            <i data-lucide="message-square" class="w-6 h-6 text-white transition-transform duration-300 group-hover:rotate-12"></i>
+        <button id="chat-toggle-button" class="group">
+            <span data-lucide="message-square" class="w-6 h-6 text-white transition-transform duration-300 group-hover:rotate-12"></span>
             <span class="ml-2">Chat with AI</span>
         </button>
 
@@ -574,7 +643,7 @@
             <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 rounded-t-2xl bg-gray-50 dark:bg-gray-800">
                 <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200">Chat with AI</h2>
                 <button id="chat-close-button" aria-label="Close Chat" class="text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-                    <i data-lucide="x" class="w-6 h-6"></i>
+                    <span data-lucide="x" class="w-6 h-6"></span>
                 </button>
             </div>
             
@@ -592,11 +661,11 @@
                 <div class="flex gap-2">
                     <input type="text" id="chat-input" class="flex-1 p-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Ask a follow-up question...">
                     <label for="chat-image-upload" class="flex items-center justify-center w-12 h-12 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer transition-all duration-300 flex-shrink-0">
-                        <i data-lucide="paperclip" class="w-5 h-5"></i> <!-- Changed icon to paperclip for general attachment -->
+                        <span data-lucide="paperclip" class="w-5 h-5"></span> <!-- Changed icon to paperclip for general attachment -->
                     </label>
                     <input type="file" id="chat-image-upload" accept="image/*, .txt, .pdf, .csv, .json, .xml, .md" class="hidden" multiple>
                     <button id="send-chat-btn" aria-label="Send Message" class="flex items-center justify-center w-12 h-12 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 disabled:bg-indigo-400 disabled:cursor-not-allowed glow-button flex-shrink-0" style="--accent-primary: #1e88e5;">
-                        <i data-lucide="send" class="w-5 h-5"></i>
+                        <span data-lucide="send" class="w-5 h-5"></span>
                     </button>
                 </div>
             </div>
@@ -610,7 +679,8 @@
     <script type="text/javascript">
         // JavaScript for handling image upload, API call, and chat functionality
         
-        // This function call is from the Lucide Icon library to replace all `<i>` tags with the corresponding SVG icons
+        // This function call is from the Lucide Icon library to replace all `<span>` tags with the corresponding SVG icons
+        // It should be called any time new Lucide icon elements are added to the DOM.
         const createIcons = () => {
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
@@ -656,6 +726,12 @@
         let chatAttachments = []; // Array to store {file: File, mimeType: string, data: string} for chat
         let chatHistory = [];
         let lastPredictionText = '';
+
+        // Web Speech API related variables
+        let currentUtterance = null;
+        let isSpeaking = false;
+        let messageTextCache = new Map(); // Store message content for copy/dictate
+
 
         // Dark Mode Initialization and Listener
         // Set dark mode as default if not already set in local storage
@@ -739,7 +815,7 @@
                         <div class="code-block-header">
                             ${languageDisplay}
                             <button class="code-block-copy-button" data-copy-target="${uniqueId}">
-                                <i data-lucide="clipboard" class="w-4 h-4"></i>
+                                <span data-lucide="clipboard" class="w-4 h-4"></span>
                                 Copy code
                             </button>
                         </div>
@@ -752,15 +828,54 @@
         // Set Marked.js options to use the custom renderer
         marked.use({ renderer });
 
+        /**
+         * Helper function to update a Lucide icon displayed within a button.
+         * Removes the existing SVG and adds a new span for Lucide to convert.
+         * @param {HTMLElement} buttonElement The button element containing the icon.
+         * @param {string} newIconName The Lucide icon name (e.g., 'check', 'clipboard').
+         * @param {string} [classList] Optional additional classes for the new span. Defaults to 'w-4 h-4' for action buttons.
+         */
+        function updateButtonIcon(buttonElement, newIconName, classList = 'w-4 h-4') {
+            // Remove existing Lucide SVG (it will have the 'lucide' class)
+            let currentIconSvg = buttonElement.querySelector('.lucide');
+            if (currentIconSvg) {
+                currentIconSvg.remove();
+            }
+
+            // Create a new span element
+            const newIconSpan = document.createElement('span');
+            newIconSpan.setAttribute('data-lucide', newIconName);
+            newIconSpan.className = classList; // Apply styling classes
+
+            // Prepend the new span to the button (or append if no text)
+            // This assumes the icon is the first child or only child,
+            // which is true for the current button structures (send-chat-btn, main toggle, message actions).
+            if (buttonElement.firstChild && buttonElement.firstChild.nodeType === Node.TEXT_NODE) {
+                 buttonElement.prepend(newIconSpan);
+            } else {
+                 buttonElement.appendChild(newIconSpan);
+            }
+           
+            createIcons(); // Trigger Lucide to convert the new span to SVG
+        }
+
 
         // Function to append a message to the chat history
         function appendChatMessage(role, text, attachments = []) { // attachments is now an array of {mimeType, data, name}
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('chat-message', role);
             
+            // Unique ID for the message to reference its content
+            const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            messageDiv.dataset.messageId = messageId;
+            // Store raw text for copying/dictating. This will be updated below for user/AI specific content.
+            messageTextCache.set(messageId, text); 
+
             let contentHTML = '';
+            let rawMessageContentForCache = ''; // To store plain text for copy/dictate
 
             if (role === 'user') {
+                rawMessageContentForCache = `You: ${text}`;
                 contentHTML += `<span class="font-bold">You:</span> ${text}`;
                 if (attachments.length > 0) {
                     contentHTML += `<div class="mt-2 flex flex-wrap gap-2">`;
@@ -771,20 +886,38 @@
                             // For non-image files, display an icon and file name
                             contentHTML += `
                                 <div class="flex items-center space-x-1 p-2 bg-gray-100 dark:bg-gray-600 rounded-md text-sm">
-                                    <i data-lucide="${getFileIcon(attachment.mimeType)}" class="w-4 h-4 flex-shrink-0"></i>
+                                    <span data-lucide="${getFileIcon(attachment.mimeType)}" class="w-4 h-4 flex-shrink-0"></span>
                                     <span class="truncate max-w-[120px]">${attachment.name || 'File'}</span>
                                 </div>
                             `;
                         }
                     });
                     contentHTML += `</div>`;
+                    // Add attachment info to raw content
+                    rawMessageContentForCache += `\n[Attachments: ${attachments.map(a => a.name).join(', ')}]`;
                 }
             } else { // AI message
+                rawMessageContentForCache = `AI: ${text}`;
                 // Render markdown content within a wrapper for better styling control
-                contentHTML = `<div class="ai-content-wrapper">${marked.parse(text)}</div>`;
+                contentHTML = `<div class="message-content">${marked.parse(text)}</div>`;
             }
             
-            messageDiv.innerHTML = contentHTML;
+            // Re-set the raw text in cache, accounting for actual content for dictation
+            messageTextCache.set(messageId, rawMessageContentForCache); 
+
+            // Add action buttons
+            const actionsHTML = `
+                <div class="message-actions">
+                    <button class="copy-message-btn" title="Copy message" data-message-id="${messageId}">
+                        <span data-lucide="clipboard" class="w-4 h-4"></span>
+                    </button>
+                    <button class="dictate-message-btn" title="Dictate message" data-message-id="${messageId}">
+                        <span data-lucide="volume-2" class="w-4 h-4"></span>
+                    </button>
+                </div>
+            `;
+            
+            messageDiv.innerHTML = contentHTML + actionsHTML;
             chatHistoryDiv.appendChild(messageDiv);
             
             // Animate message pop-in
@@ -831,8 +964,9 @@
                 errorContainer.classList.add('hidden'); // Hide any previous errors
                 chatHistory = []; // Clear chat history
                 chatHistoryDiv.innerHTML = '';
-                chatToggleButton.classList.add('hidden'); // Hide the chat button on new upload
-                chatPopupWindow.classList.add('chat-hidden'); // Hide the chat popup
+                messageTextCache.clear(); // Clear message text cache
+                chatToggleButton.classList.remove('hidden'); // Keep the chat button visible
+                chatPopupWindow.classList.add('chat-hidden'); // Ensure chat popup is hidden on new main upload
             } else {
                 previewContainer.classList.add('hidden');
                 analyzeBtn.disabled = true;
@@ -855,8 +989,9 @@
             exportButtons.classList.add('hidden');
             errorContainer.classList.add('hidden');
             
-            chatToggleButton.classList.add('hidden'); // Hide the chat button during analysis
-            chatPopupWindow.classList.add('chat-hidden'); // Hide the chat popup
+            // Hide the chat popup and show button during analysis for clarity
+            chatToggleButton.classList.remove('hidden'); 
+            chatPopupWindow.classList.add('chat-hidden'); 
 
             // Modified prompt to be very specific about markdown code blocks for code.
             const initialPrompt = "Act as a professional sports analyst for the fantasy sports platform Dream11. You are given a screenshot(s) containing information about an upcoming cricket match. Analyze all the text and images within the screenshot(s) to find key details such as player form, team news, pitch conditions, and recent performances. Based on your thorough analysis, provide the best possible Dream11 team, including a captain and vice-captain. Your output should be a single, well-structured text block that first lists the suggested team by player role (Wicket-keeper, Batsmen, All-rounders, Bowlers) and then provides a concise, point-form analysis explaining your choices. The analysis should be grounded in the data you extracted from the image. Use clear headings for each section (e.g., ## Team Analysis) and bullet points for lists (e.g., - Player Name). IMPORTANT: If you provide any code, always wrap it in a markdown code block (e.g., ```html\n<p>Hello</p>\n``` or ```javascript\nconsole.log('hi');\n```).";
@@ -896,7 +1031,8 @@
                 // After analysis, show the chat and export buttons
                 chatToggleButton.classList.remove('hidden');
                 exportButtons.classList.remove('hidden');
-                appendChatMessage('ai', responseText); // Also append to chat history UI
+                // The main prediction output is also considered the first AI chat message
+                appendChatMessage('ai', responseText); 
                 chatInput.focus();
 
             } catch (error) {
@@ -940,14 +1076,14 @@
                     if (attachment.mimeType.startsWith('image/')) {
                         previewContent = `<img src="data:${attachment.mimeType};base64,${attachment.data}" alt="${attachment.name}" class="w-10 h-10 object-cover rounded-md">`;
                     } else {
-                        previewContent = `<i data-lucide="${getFileIcon(attachment.mimeType)}" class="w-5 h-5 flex-shrink-0"></i>`;
+                        previewContent = `<span data-lucide="${getFileIcon(attachment.mimeType)}" class="w-5 h-5 flex-shrink-0"></span>`;
                     }
 
                     attachmentDiv.innerHTML = `
                         ${previewContent}
                         <span class="truncate max-w-[100px]">${attachment.name}</span>
                         <button class="remove-attachment-btn text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 ml-1">
-                            <i data-lucide="x" class="w-4 h-4"></i>
+                            <span data-lucide="x" class="w-4 h-4"></span>
                         </button>
                     `;
                     chatAttachmentsPreviewContainer.appendChild(attachmentDiv);
@@ -1064,21 +1200,29 @@
             uploadedMainImages = []; // Clear main images
             errorContainer.classList.add('hidden');
             errorText.textContent = '';
-            chatToggleButton.classList.add('hidden'); // Hide chat button on clear
+            chatToggleButton.classList.remove('hidden'); // Keep chat button visible
             chatPopupWindow.classList.add('chat-hidden'); // Hide chat popup
             chatHistory = []; // Clear chat history
             chatHistoryDiv.innerHTML = '';
+            messageTextCache.clear(); // Clear message text cache
             lastPredictionText = ''; // Clear the last prediction text
             
             // Clear chat-specific attachments
             chatAttachments = [];
             chatImageUpload.value = '';
             displayChatAttachments(); // Clear attachment previews
+
+            // Stop any ongoing speech
+            if (isSpeaking) {
+                window.speechSynthesis.cancel();
+                isSpeaking = false;
+                currentUtterance = null;
+            }
         });
 
         // Floating chat popup toggle logic
         chatToggleButton.addEventListener('click', () => {
-            chatToggleButton.classList.add('hidden');
+            // chatToggleButton.classList.add('hidden'); // No longer hide the button, just move the popup
             chatPopupWindow.classList.remove('chat-hidden');
             chatPopupWindow.classList.add('chat-visible');
             chatInput.focus();
@@ -1087,9 +1231,20 @@
         });
 
         chatCloseButton.addEventListener('click', () => {
-            chatToggleButton.classList.remove('hidden');
+            // chatToggleButton.classList.remove('hidden'); // No longer hide the button
             chatPopupWindow.classList.remove('chat-visible');
             chatPopupWindow.classList.add('chat-hidden');
+
+            // Stop any ongoing speech when closing chat
+            if (isSpeaking) {
+                window.speechSynthesis.cancel();
+                isSpeaking = false;
+                currentUtterance = null;
+                // Reset all dictate buttons to play state
+                document.querySelectorAll('.dictate-message-btn').forEach(btn => {
+                    updateButtonIcon(btn, 'volume-2'); // Reset icon
+                });
+            }
         });
         
         // Function to show a temporary message for clipboard copy
@@ -1116,36 +1271,43 @@
 
             try {
                 const canvas = await html2canvas(content, {
-                    scale: 2, // Increase scale for higher quality
+                    scale: 2, // Higher scale for better quality
                     useCORS: true,
+                    // These options ensure the canvas captures the full scrollable content
+                    windowWidth: content.scrollWidth, 
+                    windowHeight: content.scrollHeight 
                 });
+
                 const imgData = canvas.toDataURL('image/png');
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+
                 const pdf = new jsPDF('p', 'mm', 'a4');
-                const imgProps = pdf.getImageProperties(imgData);
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                const pdfPageWidth = pdf.internal.pageSize.getWidth(); // A4 width in mm
+                const pdfPageHeight = pdf.internal.pageSize.getHeight(); // A4 height in mm
 
-                // Check if content fits on one page, otherwise create multiple pages
-                let currentY = 0;
-                const pageHeight = pdf.internal.pageSize.height;
-                const padding = 10; // Padding from page edges
+                const imgRatio = imgWidth / imgHeight;
+                const pdfImgHeight = (pdfPageWidth / imgRatio); // Calculate scaled height if image takes full PDF width
 
-                if (pdfHeight > pageHeight) {
-                    let totalHeight = imgProps.height;
-                    let imgX = 0;
-                    let imgY = 0;
-                    let imgWidth = pdfWidth;
+                let heightLeft = imgHeight; // Remaining height of the canvas image to be put into PDF (in canvas pixels)
+                let position = 0; // Current vertical position in canvas image (in canvas pixels)
 
-                    while (totalHeight > 0) {
-                        pdf.addImage(imgData, 'PNG', imgX, imgY - currentY, imgWidth, pdfHeight);
-                        currentY += pageHeight;
-                        totalHeight -= pageHeight;
-                        if (totalHeight > 0) {
-                            pdf.addPage();
-                        }
+                while (heightLeft > 0) {
+                    // Add a new page if it's not the first one
+                    if (position > 0) {
+                        pdf.addPage();
                     }
-                } else {
-                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+                    // Calculate height of the slice that fits one PDF page (in canvas pixels)
+                    // pdfPageHeight / pdfImgHeight converts mm to a ratio of the original image height
+                    const sliceHeightPx = Math.min(heightLeft, imgHeight * (pdfPageHeight / pdfImgHeight));
+                    
+                    // Add the slice of the image to the PDF
+                    // addImage(imageData, format, x, y, width, height, alias, compression, rotation, sx, sy, sWidth, sHeight)
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfPageWidth, pdfPageHeight, null, 'FAST', 0, 0, position, imgWidth, sliceHeightPx);
+                    
+                    heightLeft -= sliceHeightPx;
+                    position += sliceHeightPx;
                 }
                 
                 pdf.save('Dream11_Team_Prediction.pdf');
@@ -1153,7 +1315,6 @@
                 console.error('Error generating PDF:', error);
                 showError('Failed to generate PDF. Please try again.');
             } finally {
-                // Re-enable buttons
                 savePdfBtn.disabled = false;
                 shareTextBtn.disabled = false;
             }
@@ -1184,57 +1345,149 @@
 
         // Event delegation for copy code buttons within chat history
         chatHistoryDiv.addEventListener('click', (event) => {
-            const copyButton = event.target.closest('.code-block-copy-button');
-            if (copyButton) {
-                const targetId = copyButton.dataset.copyTarget;
+            // Handle code block copy button
+            const codeCopyButton = event.target.closest('.code-block-copy-button');
+            if (codeCopyButton) {
+                const targetId = codeCopyButton.dataset.copyTarget;
                 const codeElement = document.getElementById(targetId);
                 if (codeElement) {
                     const codeToCopy = codeElement.textContent;
-                    // Use modern Clipboard API if available
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                        navigator.clipboard.writeText(codeToCopy)
-                            .then(() => {
-                                showCopyMessage();
-                                copyButton.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Copied!`;
-                                createIcons(); // Re-render icon
-                                setTimeout(() => {
-                                    copyButton.innerHTML = `<i data-lucide="clipboard" class="w-4 h-4"></i> Copy code`;
-                                    createIcons(); // Re-render icon
-                                }, 2000);
-                            })
-                            .catch(err => {
-                                console.error('Failed to copy code: ', err);
-                                showError('Failed to copy code. Please copy manually.');
-                            });
-                    } else {
-                        // Fallback for older browsers
-                        const tempTextArea = document.createElement('textarea');
-                        tempTextArea.value = codeToCopy;
-                        document.body.appendChild(tempTextArea);
-                        tempTextArea.select();
-                        try {
-                            document.execCommand('copy');
-                            showCopyMessage();
-                             copyButton.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Copied!`;
-                             createIcons(); // Re-render icon
-                             setTimeout(() => {
-                                 copyButton.innerHTML = `<i data-lucide="clipboard" class="w-4 h-4"></i> Copy code`;
-                                 createIcons(); // Re-render icon
-                             }, 2000);
-                        } catch (err) {
-                            console.error('Failed to copy code (fallback):', err);
-                            showError('Failed to copy code. Please copy manually.');
-                        }
-                        document.body.removeChild(tempTextArea);
-                    }
+                    // For code block copy button, its own icon changes
+                    updateButtonIcon(codeCopyButton, 'check', 'w-4 h-4'); // Explicitly pass classList for code buttons
+                    copyToClipboard(codeToCopy); // No button element needed here, only text
+                    setTimeout(() => { // Reset icon after 2 seconds
+                        updateButtonIcon(codeCopyButton, 'clipboard', 'w-4 h-4'); // Explicitly pass classList
+                    }, 2000);
+                    return; // Prevent further bubbling for this button
                 }
             }
+
+            // Handle chat message copy button
+            const chatCopyButton = event.target.closest('.copy-message-btn');
+            if (chatCopyButton) {
+                const messageId = chatCopyButton.dataset.messageId;
+                const messageContent = messageTextCache.get(messageId);
+                if (messageContent) {
+                    // For chat message copy button, its own icon changes
+                    updateButtonIcon(chatCopyButton, 'check');
+                    copyToClipboard(messageContent); // No button element needed here, only text
+                    setTimeout(() => { // Reset icon after 2 seconds
+                        updateButtonIcon(chatCopyButton, 'clipboard');
+                    }, 2000);
+                } else {
+                    showError('Message content not found for copying.');
+                }
+                return; // Prevent further bubbling
+            }
+
+            // Handle dictate message button
+            const dictateButton = event.target.closest('.dictate-message-btn');
+            if (dictateButton) {
+                const messageId = dictateButton.dataset.messageId;
+                const messageContent = messageTextCache.get(messageId);
+                if (messageContent) {
+                    toggleSpeech(messageContent, dictateButton);
+                } else {
+                    showError('Message content not found for dictation.');
+                }
+                return; // Prevent further bubbling
+            }
         });
+
+        // Helper function to copy text to clipboard
+        function copyToClipboard(text) { // Removed buttonElement as it's handled by updateButtonIcon before calling this
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        showCopyMessage();
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                        showError('Failed to copy text. Please copy manually.');
+                    });
+            } else {
+                // Fallback for older browsers
+                const tempTextArea = document.createElement('textarea');
+                tempTextArea.value = text;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                try {
+                    document.execCommand('copy');
+                    showCopyMessage();
+                } catch (err) {
+                    console.error('Failed to copy (fallback):', err);
+                    showError('Failed to copy text. Please copy manually.');
+                }
+                document.body.removeChild(tempTextArea);
+            }
+        }
+
+        // Helper function for text-to-speech
+        function toggleSpeech(text, buttonElement) {
+            if (!window.speechSynthesis) {
+                showError('Speech synthesis not supported in this browser.');
+                return;
+            }
+
+            // Check if this specific message is currently being spoken
+            if (isSpeaking && currentUtterance && currentUtterance.text === text) {
+                // If the same message is currently being spoken, toggle pause/resume
+                if (window.speechSynthesis.paused) {
+                    window.speechSynthesis.resume();
+                    updateButtonIcon(buttonElement, 'pause');
+                } else {
+                    window.speechSynthesis.pause();
+                    updateButtonIcon(buttonElement, 'volume-2');
+                }
+            } else {
+                // If a different message is speaking, or nothing is speaking, start new speech
+                startSpeech(text, buttonElement);
+            }
+        }
+
+        function startSpeech(text, buttonElement) {
+            // Cancel any existing speech first
+            if (window.speechSynthesis.speaking || window.speechSynthesis.paused) {
+                window.speechSynthesis.cancel();
+            }
+
+            // Reset all other dictate buttons to play state
+            document.querySelectorAll('.dictate-message-btn').forEach(btn => {
+                if (btn !== buttonElement) { // Don't reset the button that initiated the current speech
+                    updateButtonIcon(btn, 'volume-2'); 
+                }
+            });
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US'; // Set language
+
+            utterance.onstart = () => {
+                isSpeaking = true;
+                currentUtterance = utterance;
+                updateButtonIcon(buttonElement, 'pause');
+            };
+            utterance.onend = () => {
+                isSpeaking = false;
+                currentUtterance = null;
+                updateButtonIcon(buttonElement, 'volume-2');
+            };
+            utterance.onerror = (event) => {
+                console.error('Speech synthesis error:', event.error);
+                showError('Failed to dictate message. Check console for details.');
+                isSpeaking = false;
+                currentUtterance = null;
+                updateButtonIcon(buttonElement, 'volume-2');
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
 
         // Generic API call function with exponential backoff
         async function callGeminiAPI(payload) {
             // Replace with your actual API key
-            const apiKey = "AIzaSyC7twxprKoApUjR4uebBS-12KVyZTkuvrw"; 
+            const apiKey = "AIzaSyC7twxprKoApUjR4uebBS-12KVyZTkuvrw"; // <<<<<<< IMPORTANT: REPLACE THIS WITH YOUR GEMINI API KEY
+
             if (apiKey === "YOUR_GEMINI_API_KEY" || !apiKey) {
                 throw new Error("API Key is not set. Please replace 'YOUR_GEMINI_API_KEY' in the script.");
             }
@@ -1297,10 +1550,12 @@
 </body>
 </html>
 
-----------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------
 
-do the following and send me the full updated code : 
+send me the full updated code after doing the following changes : 
 
-add a copy button at the end of every text message. (just like chatgpt)
-add a dictate button beside the copy button under every text message. (just like chatgpt)
-improve the design of the website.
+1. take voice input intelligently like chatgpt
+2. pdf export feature must generate a beautiful pdf in a great template of pdf
+
+
+in case of the pdf generation there are duplicate content and the pdf is still not well made/presented.

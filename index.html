@@ -250,7 +250,7 @@
                 height: calc(100vh - 2rem);
             }
             /* Hide text on floating button on smaller screens */
-            #chat-toggle-button span {
+            #chat-toggle-button span:not([data-lucide]) { /* Target the text span */
                 display: none;
             }
             #chat-toggle-button {
@@ -530,6 +530,140 @@
             right: auto;
         }
 
+        /* New style for speech recognition button when active */
+        .voice-input-active {
+            background-color: var(--accent-error) !important; /* Red when recording */
+            animation: pulse-red 1s infinite cubic-bezier(0.4, 0, 0.6, 1);
+        }
+
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        }
+
+        /* Styles for the hidden PDF export template */
+        #pdf-export-content {
+            display: none; /* Hidden by default */
+            width: 210mm; /* A4 width */
+            min-height: 297mm; /* A4 height, ensures at least one page worth of content */
+            padding: 20mm; /* Margins */
+            box-sizing: border-box; /* Include padding in width/height */
+            font-family: 'Inter', sans-serif;
+            color: #333;
+            background: white;
+            flex-direction: column; /* Ensure content flows vertically */
+            justify-content: space-between; /* Push header/footer to ends */
+        }
+
+        #pdf-export-content .pdf-header {
+            text-align: center;
+            margin-bottom: 20mm;
+            border-bottom: 2px solid var(--accent-primary);
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        #pdf-export-content .pdf-header h1 {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--accent-primary);
+            margin: 0;
+            line-height: 1;
+        }
+        #pdf-export-content .pdf-header p {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        #pdf-export-content .pdf-header .lucide {
+            width: 32px;
+            height: 32px;
+            color: var(--accent-primary);
+        }
+
+        #pdf-export-content .pdf-body {
+            flex-grow: 1; /* Allow body to take up remaining space */
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        #pdf-export-content .pdf-body h1,
+        #pdf-export-content .pdf-body h2,
+        #pdf-export-content .pdf-body h3 {
+            font-weight: bold;
+            margin-bottom: 0.5em;
+            margin-top: 1em;
+            line-height: 1.2;
+            color: var(--accent-primary);
+        }
+        #pdf-export-content .pdf-body h1 { font-size: 24px; }
+        #pdf-export-content .pdf-body h2 { font-size: 20px; }
+        #pdf-export-content .pdf-body h3 { font-size: 16px; }
+        #pdf-export-content .pdf-body ul,
+        #pdf-export-content .pdf-body ol {
+            list-style-position: outside; /* Ensure bullets are visible */
+            margin-left: 2em;
+            margin-bottom: 1em;
+            padding: 0;
+        }
+        #pdf-export-content .pdf-body li {
+            margin-bottom: 0.3em;
+        }
+        #pdf-export-content .pdf-body strong {
+            font-weight: bold;
+            color: #00e676; /* Green accent */
+        }
+        #pdf-export-content .pdf-body a {
+            color: var(--accent-primary);
+            text-decoration: underline;
+        }
+        #pdf-export-content .pdf-body blockquote {
+            border-left: 4px solid #ccc;
+            padding-left: 1em;
+            margin-left: 0;
+            color: #555;
+            font-style: italic;
+        }
+
+        /* PDF Code block styling - adjusted for print */
+        #pdf-export-content .code-block-container {
+            background-color: #f8f8f2; /* Lighter background for print */
+            color: #333;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        #pdf-export-content .code-block-container pre {
+            padding: 0.8rem;
+            font-size: 10px;
+            line-height: 1.3;
+        }
+        #pdf-export-content .code-block-header {
+            background-color: #eee;
+            color: #555;
+            padding: 0.4rem 0.8rem;
+            border-bottom: 1px solid #ddd;
+            font-size: 0.8em;
+            display: flex; /* Re-enable flex for header elements like language */
+            justify-content: space-between;
+            align-items: center;
+        }
+        #pdf-export-content .code-block-copy-button { /* Hide copy button in PDF */
+            display: none;
+        }
+        #pdf-export-content .pdf-footer {
+            text-align: center;
+            margin-top: 20mm;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+            font-size: 10px;
+            color: #999;
+        }
+        
     </style>
 </head>
 <body class="antialiased dark">
@@ -652,7 +786,7 @@
                 <!-- Chat messages will be appended here -->
             </div>
             
-            <!-- Chat input section with attachment and send button -->
+            <!-- Chat input section with attachment, voice and send button -->
             <div class="p-4 border-t border-gray-200 dark:border-gray-700">
                 <!-- Attachment preview -->
                 <div id="chat-attachments-preview-container" class="mb-2 flex flex-wrap items-center gap-2 hidden">
@@ -660,6 +794,9 @@
                 </div>
                 <div class="flex gap-2">
                     <input type="text" id="chat-input" class="flex-1 p-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Ask a follow-up question...">
+                    <button id="voice-input-btn" aria-label="Voice Input" class="flex items-center justify-center w-12 h-12 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer transition-all duration-300 flex-shrink-0">
+                        <span data-lucide="mic" class="w-5 h-5"></span>
+                    </button>
                     <label for="chat-image-upload" class="flex items-center justify-center w-12 h-12 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer transition-all duration-300 flex-shrink-0">
                         <span data-lucide="paperclip" class="w-5 h-5"></span> <!-- Changed icon to paperclip for general attachment -->
                     </label>
@@ -674,6 +811,21 @@
     
     <!-- Temporary message for clipboard copy -->
     <div id="copy-message">Text copied to clipboard!</div>
+
+    <!-- Hidden div for PDF export template -->
+    <div id="pdf-export-content" style="display: none;">
+        <div class="pdf-header">
+            <span data-lucide="trophy" class="w-8 h-8"></span>
+            <h1>Dream11 Team Prediction</h1>
+            <p>Generated on <span id="pdf-date"></span></p>
+        </div>
+        <div class="pdf-body">
+            <!-- Prediction output will be inserted here -->
+        </div>
+        <div class="pdf-footer">
+            Powered by Gemini AI | Dream11 Predictor
+        </div>
+    </div>
 
 
     <script type="text/javascript">
@@ -718,9 +870,15 @@
         const sendChatBtn = document.getElementById('send-chat-btn');
         const chatImageUpload = document.getElementById('chat-image-upload');
         const chatAttachmentsPreviewContainer = document.getElementById('chat-attachments-preview-container'); // Changed to container
+        const voiceInputBtn = document.getElementById('voice-input-btn'); // New voice input button
         
         // Copy message element
         const copyMessage = document.getElementById('copy-message');
+
+        // PDF Export template elements
+        const pdfExportContent = document.getElementById('pdf-export-content');
+        const pdfBody = pdfExportContent.querySelector('.pdf-body');
+        const pdfDate = document.getElementById('pdf-date');
 
         let uploadedMainImages = []; // Array to store {mimeType, data} for main upload
         let chatAttachments = []; // Array to store {file: File, mimeType: string, data: string} for chat
@@ -732,6 +890,94 @@
         let isSpeaking = false;
         let messageTextCache = new Map(); // Store message content for copy/dictate
 
+        // Speech Recognition variables
+        let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        let isVoiceInputActive = false;
+        let finalTranscript = ''; // Stores the accumulated final transcript for speech input
+
+        // Initialize SpeechRecognition if available
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = true; // IMPORTANT: Keep listening for multiple phrases
+            recognition.interimResults = true; // Show results while speaking
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                isVoiceInputActive = true;
+                voiceInputBtn.classList.add('voice-input-active');
+                updateButtonIcon(voiceInputBtn, 'mic-off'); // Change icon to indicate listening
+                chatInput.placeholder = 'Listening... Speak now.';
+                finalTranscript = ''; // Clear previous transcript for a new session
+                chatInput.value = ''; // Clear input field
+            };
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                chatInput.value = finalTranscript + interimTranscript; // Update input with current recognition
+            };
+
+            recognition.onend = () => {
+                // This event fires when recognition stops, either manually (user clicked mic again) or due to timeout (no speech).
+                // Reset UI regardless.
+                isVoiceInputActive = false;
+                voiceInputBtn.classList.remove('voice-input-active');
+                updateButtonIcon(voiceInputBtn, 'mic'); // Reset icon to mic
+                chatInput.placeholder = 'Ask a follow-up question...';
+
+                // If there's a final transcript, automatically send the message.
+                // This simulates ChatGPT's behavior of auto-sending after a natural pause.
+                if (finalTranscript.trim() !== '') {
+                    chatInput.value = finalTranscript.trim(); // Ensure final transcript is in the input
+                    sendChatBtn.click(); // Trigger send
+                } else if (chatInput.value.trim() === '') {
+                    // If recognition ended with no final transcript and input is empty, clear it
+                    chatInput.value = ''; 
+                }
+            };
+
+            recognition.onerror = (event) => {
+                isVoiceInputActive = false; // Important: reset state on error
+                voiceInputBtn.classList.remove('voice-input-active');
+                updateButtonIcon(voiceInputBtn, 'mic'); // Reset icon
+                chatInput.placeholder = 'Ask a follow-up question...';
+                console.error('Speech recognition error:', event.error);
+                if (event.error === 'not-allowed') {
+                    showError('Microphone access denied. Please allow microphone access in your browser settings.');
+                } else if (event.error === 'no-speech') {
+                    // This error can be frequent if user doesn't speak. Don't show as a persistent error.
+                    console.log('No speech detected, recognition ended.');
+                    // If no speech was detected, and there was no final transcript, clear the input
+                    if (finalTranscript.trim() === '') {
+                        chatInput.value = '';
+                    }
+                } else if (event.error === 'network') {
+                    showError('Speech recognition network error. This often means a firewall, proxy, or browser extension is blocking access to Google\'s speech services. Please try disabling extensions or testing in incognito mode.');
+                } else {
+                    showError(`Speech recognition error: ${event.error}`);
+                }
+            };
+            
+            // Optional: Listen for audio start/end for more granular control/feedback
+            recognition.onaudiostart = () => {
+                // console.log('Audio capturing started.');
+            };
+
+            recognition.onaudioend = () => {
+                // console.log('Audio capturing ended.');
+            };
+
+        } else {
+            console.warn('Web Speech API (SpeechRecognition) not supported in this browser.');
+            voiceInputBtn.style.display = 'none'; // Hide the button if not supported
+        }
 
         // Dark Mode Initialization and Listener
         // Set dark mode as default if not already set in local storage
@@ -777,7 +1023,7 @@
             if (mimeType === 'application/pdf') return 'file-text';
             if (mimeType.includes('text/')) return 'file-text';
             if (mimeType.includes('csv') || mimeType.includes('excel')) return 'file-spreadsheet';
-            if (mimeType.includes('json') || mimeType.includes('xml')) return 'file-code';
+            if (mimeType.includes('json') || mimeType.includes('xml') || mimeType.includes('code')) return 'file-code';
             return 'file';
         }
 
@@ -790,24 +1036,18 @@
         // --- Marked.js Custom Renderer for Code Blocks ---
         const renderer = {
             code(code, lang) {
-                // IMPORTANT FIX: If `code` is an object (a token object), use its `text` property.
-                // Otherwise, ensure it's converted to a string to prevent .replace() errors.
                 let actualCodeContent;
                 if (typeof code === 'object' && code !== null && typeof code.text === 'string') {
-                    console.warn('Marked.js code renderer received a token object, extracting text property.');
                     actualCodeContent = code.text;
                 } else if (typeof code !== 'string') {
-                    console.warn('Marked.js code renderer received non-string content, converting to string:', code);
-                    actualCodeContent = String(code); // Fallback for other non-string cases
+                    actualCodeContent = String(code);
                 } else {
                     actualCodeContent = code;
                 }
 
                 const languageDisplay = lang ? `<span class="text-xs">${lang.toUpperCase()}</span>` : '';
-                // Generate a unique ID for each code block
                 const uniqueId = `code-block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
                 
-                // Escape HTML entities in the code to display correctly within <pre><code>
                 const escapedCode = actualCodeContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
                 return `
@@ -825,7 +1065,6 @@
             }
         };
 
-        // Set Marked.js options to use the custom renderer
         marked.use({ renderer });
 
         /**
@@ -847,14 +1086,8 @@
             newIconSpan.setAttribute('data-lucide', newIconName);
             newIconSpan.className = classList; // Apply styling classes
 
-            // Prepend the new span to the button (or append if no text)
-            // This assumes the icon is the first child or only child,
-            // which is true for the current button structures (send-chat-btn, main toggle, message actions).
-            if (buttonElement.firstChild && buttonElement.firstChild.nodeType === Node.TEXT_NODE) {
-                 buttonElement.prepend(newIconSpan);
-            } else {
-                 buttonElement.appendChild(newIconSpan);
-            }
+            // Append the new span to the button
+            buttonElement.appendChild(newIconSpan);
            
             createIcons(); // Trigger Lucide to convert the new span to SVG
         }
@@ -868,9 +1101,7 @@
             // Unique ID for the message to reference its content
             const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
             messageDiv.dataset.messageId = messageId;
-            // Store raw text for copying/dictating. This will be updated below for user/AI specific content.
-            messageTextCache.set(messageId, text); 
-
+            
             let contentHTML = '';
             let rawMessageContentForCache = ''; // To store plain text for copy/dictate
 
@@ -902,7 +1133,7 @@
                 contentHTML = `<div class="message-content">${marked.parse(text)}</div>`;
             }
             
-            // Re-set the raw text in cache, accounting for actual content for dictation
+            // Set the raw text in cache, accounting for actual content for dictation
             messageTextCache.set(messageId, rawMessageContentForCache); 
 
             // Add action buttons
@@ -1115,6 +1346,11 @@
                 return;
             }
             
+            // Stop speech recognition if active before sending
+            if (isVoiceInputActive && recognition) {
+                recognition.stop();
+            }
+
             // Build the parts for the user message
             const userParts = [];
             if (userMessage) {
@@ -1188,6 +1424,20 @@
             }
         });
 
+        // Event listener for voice input button
+        voiceInputBtn.addEventListener('click', () => {
+            if (recognition) {
+                if (isVoiceInputActive) {
+                    recognition.stop(); // Manually stop recognition
+                } else {
+                    finalTranscript = ''; // Reset transcript when starting a new session
+                    recognition.start();
+                }
+            } else {
+                showError('Speech recognition is not supported in this browser.');
+            }
+        });
+
         // Event listener for the Clear button
         clearBtn.addEventListener('click', () => {
             imageUpload.value = ''; // Reset the file input
@@ -1218,20 +1468,21 @@
                 isSpeaking = false;
                 currentUtterance = null;
             }
+            // Stop speech recognition if active
+            if (isVoiceInputActive && recognition) {
+                recognition.stop();
+            }
         });
 
         // Floating chat popup toggle logic
         chatToggleButton.addEventListener('click', () => {
-            // chatToggleButton.classList.add('hidden'); // No longer hide the button, just move the popup
             chatPopupWindow.classList.remove('chat-hidden');
             chatPopupWindow.classList.add('chat-visible');
             chatInput.focus();
-            // Re-render icons after the popup is made visible
             setTimeout(createIcons, 50); 
         });
 
         chatCloseButton.addEventListener('click', () => {
-            // chatToggleButton.classList.remove('hidden'); // No longer hide the button
             chatPopupWindow.classList.remove('chat-visible');
             chatPopupWindow.classList.add('chat-hidden');
 
@@ -1244,6 +1495,10 @@
                 document.querySelectorAll('.dictate-message-btn').forEach(btn => {
                     updateButtonIcon(btn, 'volume-2'); // Reset icon
                 });
+            }
+            // Stop speech recognition if active
+            if (isVoiceInputActive && recognition) {
+                recognition.stop();
             }
         });
         
@@ -1261,21 +1516,33 @@
                 showError('PDF libraries not loaded. Please try again.');
                 return;
             }
+            if (!lastPredictionText) {
+                showError('No prediction available to export to PDF.');
+                return;
+            }
 
             const { jsPDF } = window.jspdf;
-            const content = document.getElementById('prediction-output');
+            
+            // Prepare the hidden PDF template content
+            pdfBody.innerHTML = marked.parse(lastPredictionText);
+            pdfDate.textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            // Show the hidden div temporarily for html2canvas to render it with its specific styles
+            pdfExportContent.style.display = 'flex'; // Use flex to activate header/footer layout
+            // Ensure icons within the PDF template are rendered before html2canvas capture
+            createIcons(); 
             
             // Disable buttons during PDF generation
             savePdfBtn.disabled = true;
             shareTextBtn.disabled = true;
 
             try {
-                const canvas = await html2canvas(content, {
+                const canvas = await html2canvas(pdfExportContent, {
                     scale: 2, // Higher scale for better quality
                     useCORS: true,
                     // These options ensure the canvas captures the full scrollable content
-                    windowWidth: content.scrollWidth, 
-                    windowHeight: content.scrollHeight 
+                    windowWidth: pdfExportContent.offsetWidth, 
+                    windowHeight: pdfExportContent.scrollHeight 
                 });
 
                 const imgData = canvas.toDataURL('image/png');
@@ -1283,31 +1550,42 @@
                 const imgHeight = canvas.height;
 
                 const pdf = new jsPDF('p', 'mm', 'a4');
-                const pdfPageWidth = pdf.internal.pageSize.getWidth(); // A4 width in mm
-                const pdfPageHeight = pdf.internal.pageSize.getHeight(); // A4 height in mm
+                const pdfPageWidth = pdf.internal.pageSize.getWidth(); // A4 width in mm (210mm)
+                const pdfPageHeight = pdf.internal.pageSize.getHeight(); // A4 height in mm (297mm)
 
-                const imgRatio = imgWidth / imgHeight;
-                const pdfImgHeight = (pdfPageWidth / imgRatio); // Calculate scaled height if image takes full PDF width
+                // Calculate aspect ratio to fit image width to PDF page width
+                const imgAspectRatio = imgWidth / imgHeight;
+                let finalImgWidth = pdfPageWidth;
+                let finalImgHeight = pdfPageWidth / imgAspectRatio; // This is the height the image would be if it fit the width
 
                 let heightLeft = imgHeight; // Remaining height of the canvas image to be put into PDF (in canvas pixels)
                 let position = 0; // Current vertical position in canvas image (in canvas pixels)
+
+                let pageNumber = 1;
 
                 while (heightLeft > 0) {
                     // Add a new page if it's not the first one
                     if (position > 0) {
                         pdf.addPage();
+                        pageNumber++;
                     }
 
-                    // Calculate height of the slice that fits one PDF page (in canvas pixels)
-                    // pdfPageHeight / pdfImgHeight converts mm to a ratio of the original image height
-                    const sliceHeightPx = Math.min(heightLeft, imgHeight * (pdfPageHeight / pdfImgHeight));
+                    // Calculate the portion of the canvas image that fits one PDF page
+                    // clipHeightPx is the height in the *original canvas pixels* that should be rendered on this PDF page.
+                    const clipHeightPx = Math.min(heightLeft, imgHeight * (pdfPageHeight / finalImgHeight));
                     
                     // Add the slice of the image to the PDF
                     // addImage(imageData, format, x, y, width, height, alias, compression, rotation, sx, sy, sWidth, sHeight)
-                    pdf.addImage(imgData, 'PNG', 0, 0, pdfPageWidth, pdfPageHeight, null, 'FAST', 0, 0, position, imgWidth, sliceHeightPx);
+                    // The sx, sy, sWidth, sHeight parameters define the source rectangle on the canvas
+                    pdf.addImage(imgData, 'PNG', 0, 0, finalImgWidth, pdfPageHeight, null, 'FAST', 0, 0, imgWidth, position, imgWidth, clipHeightPx);
                     
-                    heightLeft -= sliceHeightPx;
-                    position += sliceHeightPx;
+                    // Add page number at the bottom center
+                    pdf.setFontSize(10);
+                    pdf.setTextColor(150); // Gray color
+                    pdf.text(`Page ${pageNumber}`, pdfPageWidth / 2, pdfPageHeight - 10, { align: 'center' });
+
+                    heightLeft -= clipHeightPx;
+                    position += clipHeightPx;
                 }
                 
                 pdf.save('Dream11_Team_Prediction.pdf');
@@ -1315,6 +1593,8 @@
                 console.error('Error generating PDF:', error);
                 showError('Failed to generate PDF. Please try again.');
             } finally {
+                // Hide the template div again
+                pdfExportContent.style.display = 'none';
                 savePdfBtn.disabled = false;
                 shareTextBtn.disabled = false;
             }
@@ -1329,13 +1609,33 @@
                 const tempTextArea = document.createElement('textarea');
                 tempTextArea.value = textToCopy;
                 document.body.appendChild(tempTextArea);
-                tempTextArea.select();
-                try {
-                    document.execCommand('copy');
-                    showCopyMessage();
-                } catch (err) {
-                    console.error('Failed to copy text:', err);
-                    showError('Failed to copy text. Please copy manually.');
+            
+                // Select and copy
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(textToCopy)
+                        .then(() => {
+                            showCopyMessage();
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy text (Clipboard API):', err);
+                            tempTextArea.select();
+                            try {
+                                document.execCommand('copy'); // Fallback to deprecated method
+                                showCopyMessage();
+                            } catch (fallbackErr) {
+                                console.error('Failed to copy text (execCommand fallback):', fallbackErr);
+                                showError('Failed to copy text. Please copy manually.');
+                            }
+                        });
+                } else {
+                    tempTextArea.select();
+                    try {
+                        document.execCommand('copy'); // Fallback to deprecated method
+                        showCopyMessage();
+                    } catch (err) {
+                        console.error('Failed to copy text (execCommand):', err);
+                        showError('Failed to copy text. Please copy manually.');
+                    }
                 }
                 document.body.removeChild(tempTextArea);
             } else {
@@ -1354,7 +1654,7 @@
                     const codeToCopy = codeElement.textContent;
                     // For code block copy button, its own icon changes
                     updateButtonIcon(codeCopyButton, 'check', 'w-4 h-4'); // Explicitly pass classList for code buttons
-                    copyToClipboard(codeToCopy); // No button element needed here, only text
+                    copyToClipboard(codeToCopy); 
                     setTimeout(() => { // Reset icon after 2 seconds
                         updateButtonIcon(codeCopyButton, 'clipboard', 'w-4 h-4'); // Explicitly pass classList
                     }, 2000);
@@ -1370,7 +1670,7 @@
                 if (messageContent) {
                     // For chat message copy button, its own icon changes
                     updateButtonIcon(chatCopyButton, 'check');
-                    copyToClipboard(messageContent); // No button element needed here, only text
+                    copyToClipboard(messageContent); 
                     setTimeout(() => { // Reset icon after 2 seconds
                         updateButtonIcon(chatCopyButton, 'clipboard');
                     }, 2000);
@@ -1395,7 +1695,7 @@
         });
 
         // Helper function to copy text to clipboard
-        function copyToClipboard(text) { // Removed buttonElement as it's handled by updateButtonIcon before calling this
+        function copyToClipboard(text) { 
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text)
                     .then(() => {
@@ -1488,8 +1788,8 @@
             // Replace with your actual API key
             const apiKey = "AIzaSyC7twxprKoApUjR4uebBS-12KVyZTkuvrw"; // <<<<<<< IMPORTANT: REPLACE THIS WITH YOUR GEMINI API KEY
 
-            if (apiKey === "YOUR_GEMINI_API_KEY" || !apiKey) {
-                throw new Error("API Key is not set. Please replace 'YOUR_GEMINI_API_KEY' in the script.");
+            if (apiKey === "YOUR_GEMINI_API_KEY" || !apiKey || apiKey === "") { // Added the previous dummy key check
+                throw new Error("API Key is not set or is the default placeholder. Please replace 'AIzaSyC7twxprKoApUjR4uebBS-12KVyZTkuvrw' in the script with your actual Gemini API key.");
             }
 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
