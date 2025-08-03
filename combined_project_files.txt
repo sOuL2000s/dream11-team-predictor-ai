@@ -1995,3 +1995,6 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 improve the visual appeal of this website, i don't care how large the code is, make it look fantastic, too good to look away and make it much more interactive and influencial.
+in chat with ai add a drag and drop feature where users can drag and drop files onto the chat(just like chatgpt/gemini).
+make every aspect of the site look way too attractive.
+make the pdf generated from "save as pdf" look simple, minimal and professional.
