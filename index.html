@@ -663,7 +663,67 @@
             font-size: 10px;
             color: #999;
         }
-        
+
+        /* Chat action buttons dropdown */
+        .chat-actions-dropdown {
+            position: absolute;
+            bottom: calc(100% + 8px); /* Position above the input bar */
+            right: 0; /* Align with the parent's right edge */
+            background-color: var(--card-bg-light);
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transform-origin: bottom right;
+            transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+            z-index: 20;
+            border: 1px solid var(--border-color-light);
+            min-width: 140px; /* Adjust as needed */
+        }
+        body.dark .chat-actions-dropdown {
+            background-color: var(--card-bg-dark);
+            border-color: var(--border-color-dark);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .chat-actions-dropdown.hidden {
+            opacity: 0;
+            transform: scale(0.9);
+            pointer-events: none;
+        }
+        .chat-actions-dropdown button,
+        .chat-actions-dropdown label {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            color: var(--text-color-light); /* Default text color */
+        }
+        body.dark .chat-actions-dropdown button,
+        body.dark .chat-actions-dropdown label {
+            color: var(--text-color-dark);
+        }
+        .chat-actions-dropdown button:hover,
+        .chat-actions-dropdown label:hover {
+            background-color: var(--bg-color-light); /* Lighter hover for light theme */
+        }
+        body.dark .chat-actions-dropdown button:hover,
+        body.dark .chat-actions-dropdown label:hover {
+            background-color: var(--bg-color-dark); /* Darker hover for dark theme */
+        }
+        .chat-actions-dropdown button .lucide,
+        .chat-actions-dropdown label .lucide {
+            margin-right: 0.5rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            flex-shrink: 0;
+            color: var(--accent-primary); /* Use primary accent for icons */
+        }
+
     </style>
 </head>
 <body class="antialiased dark">
@@ -712,6 +772,9 @@
                             </div>
                         </label>
                         <input type="file" id="image-upload" accept="image/*" class="hidden" multiple>
+                        <p class="text-xs text-gray-500 mt-4 text-center">
+                            <span data-lucide="info" class="w-4 h-4 inline-block align-text-bottom mr-1"></span> For best predictions, upload screenshots with player stats, recent form, team news, and pitch reports.
+                        </p>
                     </div>
 
                     <div id="preview-container" class="mb-4 hidden transition-opacity duration-300">
@@ -787,20 +850,30 @@
             </div>
             
             <!-- Chat input section with attachment, voice and send button -->
-            <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700 relative">
                 <!-- Attachment preview -->
                 <div id="chat-attachments-preview-container" class="mb-2 flex flex-wrap items-center gap-2 hidden">
                     <!-- Attachments previews will be dynamically added here -->
                 </div>
-                <div class="flex gap-2">
-                    <input type="text" id="chat-input" class="flex-1 p-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Ask a follow-up question...">
-                    <button id="voice-input-btn" aria-label="Voice Input" class="flex items-center justify-center w-12 h-12 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer transition-all duration-300 flex-shrink-0">
-                        <span data-lucide="mic" class="w-5 h-5"></span>
+
+                <!-- Dropdown for attachment/voice buttons -->
+                <div id="chat-actions-dropdown" class="chat-actions-dropdown hidden">
+                    <button id="voice-input-btn" class="w-full justify-start text-left">
+                        <span data-lucide="mic" class="w-5 h-5"></span> Voice Input
                     </button>
-                    <label for="chat-image-upload" class="flex items-center justify-center w-12 h-12 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer transition-all duration-300 flex-shrink-0">
-                        <span data-lucide="paperclip" class="w-5 h-5"></span> <!-- Changed icon to paperclip for general attachment -->
+                    <label for="chat-image-upload" class="w-full justify-start text-left">
+                        <span data-lucide="paperclip" class="w-5 h-5"></span> Attach File
                     </label>
                     <input type="file" id="chat-image-upload" accept="image/*, .txt, .pdf, .csv, .json, .xml, .md" class="hidden" multiple>
+                </div>
+
+                <div class="flex gap-2 items-end">
+                    <input type="text" id="chat-input" class="flex-1 p-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Ask a follow-up question...">
+                    
+                    <button id="add-chat-attachment-btn" aria-label="Add attachment or voice input" class="flex items-center justify-center w-12 h-12 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer transition-all duration-300 flex-shrink-0">
+                        <span data-lucide="plus" class="w-5 h-5"></span>
+                    </button>
+
                     <button id="send-chat-btn" aria-label="Send Message" class="flex items-center justify-center w-12 h-12 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 disabled:bg-indigo-400 disabled:cursor-not-allowed glow-button flex-shrink-0" style="--accent-primary: #1e88e5;">
                         <span data-lucide="send" class="w-5 h-5"></span>
                     </button>
@@ -869,8 +942,10 @@
         const chatInput = document.getElementById('chat-input');
         const sendChatBtn = document.getElementById('send-chat-btn');
         const chatImageUpload = document.getElementById('chat-image-upload');
-        const chatAttachmentsPreviewContainer = document.getElementById('chat-attachments-preview-container'); // Changed to container
-        const voiceInputBtn = document.getElementById('voice-input-btn'); // New voice input button
+        const chatAttachmentsPreviewContainer = document.getElementById('chat-attachments-preview-container'); 
+        const voiceInputBtn = document.getElementById('voice-input-btn');
+        const addChatAttachmentBtn = document.getElementById('add-chat-attachment-btn'); // New plus button
+        const chatActionsDropdown = document.getElementById('chat-actions-dropdown'); // New dropdown div
         
         // Copy message element
         const copyMessage = document.getElementById('copy-message');
@@ -899,44 +974,43 @@
         // Initialize SpeechRecognition if available
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
-            recognition.continuous = true; // IMPORTANT: Keep listening for multiple phrases
+            recognition.continuous = true; // Keep listening for multiple phrases
             recognition.interimResults = true; // Show results while speaking
             recognition.lang = 'en-US';
 
             recognition.onstart = () => {
                 isVoiceInputActive = true;
                 voiceInputBtn.classList.add('voice-input-active');
-                updateButtonIcon(voiceInputBtn, 'mic-off'); // Change icon to indicate listening
+                updateButtonIcon(voiceInputBtn, 'mic-off', 'w-5 h-5'); // Change icon to indicate listening in dropdown
                 chatInput.placeholder = 'Listening... Speak now.';
                 finalTranscript = ''; // Clear previous transcript for a new session
                 chatInput.value = ''; // Clear input field
+                chatActionsDropdown.classList.add('hidden'); // Hide dropdown when voice input starts
             };
 
             recognition.onresult = (event) => {
                 let interimTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript;
+                        finalTranscript += event.results[i][0].transcript + ' '; // Add space for readability
                     } else {
                         interimTranscript += event.results[i][0].transcript;
                     }
                 }
                 chatInput.value = finalTranscript + interimTranscript; // Update input with current recognition
+                chatInput.scrollLeft = chatInput.scrollWidth; // Scroll to end
             };
 
             recognition.onend = () => {
-                // This event fires when recognition stops, either manually (user clicked mic again) or due to timeout (no speech).
-                // Reset UI regardless.
                 isVoiceInputActive = false;
                 voiceInputBtn.classList.remove('voice-input-active');
-                updateButtonIcon(voiceInputBtn, 'mic'); // Reset icon to mic
+                updateButtonIcon(voiceInputBtn, 'mic', 'w-5 h-5'); // Reset icon to mic in dropdown
                 chatInput.placeholder = 'Ask a follow-up question...';
 
-                // If there's a final transcript, automatically send the message.
-                // This simulates ChatGPT's behavior of auto-sending after a natural pause.
+                // If there's a final transcript, populate the input field.
+                // Removed the automatic sendChatBtn.click() here to allow editing.
                 if (finalTranscript.trim() !== '') {
                     chatInput.value = finalTranscript.trim(); // Ensure final transcript is in the input
-                    sendChatBtn.click(); // Trigger send
                 } else if (chatInput.value.trim() === '') {
                     // If recognition ended with no final transcript and input is empty, clear it
                     chatInput.value = ''; 
@@ -946,15 +1020,15 @@
             recognition.onerror = (event) => {
                 isVoiceInputActive = false; // Important: reset state on error
                 voiceInputBtn.classList.remove('voice-input-active');
-                updateButtonIcon(voiceInputBtn, 'mic'); // Reset icon
+                updateButtonIcon(voiceInputBtn, 'mic', 'w-5 h-5'); // Reset icon
                 chatInput.placeholder = 'Ask a follow-up question...';
+                chatActionsDropdown.classList.add('hidden'); // Hide dropdown on error too
+
                 console.error('Speech recognition error:', event.error);
                 if (event.error === 'not-allowed') {
                     showError('Microphone access denied. Please allow microphone access in your browser settings.');
                 } else if (event.error === 'no-speech') {
-                    // This error can be frequent if user doesn't speak. Don't show as a persistent error.
                     console.log('No speech detected, recognition ended.');
-                    // If no speech was detected, and there was no final transcript, clear the input
                     if (finalTranscript.trim() === '') {
                         chatInput.value = '';
                     }
@@ -975,8 +1049,8 @@
             };
 
         } else {
-            console.warn('Web Speech API (SpeechRecognition) not supported in this browser.');
-            voiceInputBtn.style.display = 'none'; // Hide the button if not supported
+            console.warn('Web Speech API (SpeechRecognition) not supported in this browser. Voice input button will be hidden.');
+            // voiceInputBtn.style.display = 'none'; // Will handle hiding via dropdown logic
         }
 
         // Dark Mode Initialization and Listener
@@ -1011,7 +1085,7 @@
                 reader.onload = () => resolve({
                     mimeType: file.type || 'application/octet-stream', // Fallback MIME type
                     data: reader.result.split(',')[1]
-                });
+                }); // Corrected line: added '}' here
                 reader.onerror = error => reject(error);
                 reader.readAsDataURL(file);
             });
@@ -1094,7 +1168,7 @@
 
 
         // Function to append a message to the chat history
-        function appendChatMessage(role, text, attachments = []) { // attachments is now an array of {mimeType, data, name}
+        function appendChatMessage(role, text, attachments = []) { // attachments is now an array of {mimeType, data}
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('chat-message', role);
             
@@ -1224,8 +1298,29 @@
             chatToggleButton.classList.remove('hidden'); 
             chatPopupWindow.classList.add('chat-hidden'); 
 
-            // Modified prompt to be very specific about markdown code blocks for code.
-            const initialPrompt = "Act as a professional sports analyst for the fantasy sports platform Dream11. You are given a screenshot(s) containing information about an upcoming cricket match. Analyze all the text and images within the screenshot(s) to find key details such as player form, team news, pitch conditions, and recent performances. Based on your thorough analysis, provide the best possible Dream11 team, including a captain and vice-captain. Your output should be a single, well-structured text block that first lists the suggested team by player role (Wicket-keeper, Batsmen, All-rounders, Bowlers) and then provides a concise, point-form analysis explaining your choices. The analysis should be grounded in the data you extracted from the image. Use clear headings for each section (e.g., ## Team Analysis) and bullet points for lists (e.g., - Player Name). IMPORTANT: If you provide any code, always wrap it in a markdown code block (e.g., ```html\n<p>Hello</p>\n``` or ```javascript\nconsole.log('hi');\n```).";
+            // Modified prompt to include guidance for better predictions
+            const initialPrompt = `Act as a professional sports analyst for the fantasy sports platform Dream11. You are given a screenshot(s) containing information about an upcoming cricket match.
+            
+            **Your Task:** Analyze all the text and images within the screenshot(s) to find key details such as player form, team news, pitch conditions, and recent performances. Based on your thorough analysis, provide the best possible Dream11 team, including a captain and vice-captain.
+            
+            **Output Format:** Your output must be a single, well-structured text block that:
+            1.  Lists the suggested Dream11 team by player role (Wicket-keeper, Batsmen, All-rounders, Bowlers).
+            2.  Provides a concise, point-form analysis explaining your choices. This analysis must be grounded in the data you extracted from the image.
+            3.  Uses clear headings for each section (e.g., ## Team Analysis) and bullet points for lists (e.g., - Player Name).
+            4.  **IMPORTANT:** If you provide any code (e.g., HTML, JavaScript), always wrap it in a markdown code block (e.g., \`\`\`html\n<p>Hello</p>\n\`\`\` or \`\`\`javascript\nconsole.log('hi');\n\`\`\`).
+            
+            **Information Clarity:**
+            - If any crucial information (like specific player stats, team news, or detailed pitch reports) is missing or unclear in the image(s), you must explicitly state what information you were unable to retrieve and how this might impact the prediction.
+            
+            **Concluding Tips:** Conclude your response with a small section titled '### Tips for Better Predictions' advising the user on what kind of information helps you make more accurate predictions. This section should list:
+            - Player individual statistics (recent scores, wickets, economy rates)
+            - Player form (last 5-10 matches performance)
+            - Team news (injuries, lineup changes, recent team form)
+            - Pitch reports (batting/bowling friendly, average scores)
+            - Head-to-head records between the teams.
+            
+            This will help the user provide better inputs in the future.`;
+
 
             try {
                 // Build the user parts for the initial image upload
@@ -1291,6 +1386,7 @@
                 displayChatAttachments();
                 chatInput.focus();
             }
+            chatActionsDropdown.classList.add('hidden'); // Hide dropdown after selection
         });
 
         // Function to display chat attachments
@@ -1350,6 +1446,9 @@
             if (isVoiceInputActive && recognition) {
                 recognition.stop();
             }
+
+            // Hide dropdown if open
+            chatActionsDropdown.classList.add('hidden');
 
             // Build the parts for the user message
             const userParts = [];
@@ -1424,7 +1523,7 @@
             }
         });
 
-        // Event listener for voice input button
+        // Event listener for voice input button (now inside dropdown)
         voiceInputBtn.addEventListener('click', () => {
             if (recognition) {
                 if (isVoiceInputActive) {
@@ -1437,6 +1536,21 @@
                 showError('Speech recognition is not supported in this browser.');
             }
         });
+
+        // Event listener for the new "Add" button to toggle dropdown
+        addChatAttachmentBtn.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevent document click from immediately closing it
+            chatActionsDropdown.classList.toggle('hidden');
+            createIcons(); // Ensure icons within dropdown are rendered
+        });
+
+        // Close dropdown when clicking anywhere else on the document
+        document.addEventListener('click', (event) => {
+            if (!chatActionsDropdown.contains(event.target) && !addChatAttachmentBtn.contains(event.target)) {
+                chatActionsDropdown.classList.add('hidden');
+            }
+        });
+
 
         // Event listener for the Clear button
         clearBtn.addEventListener('click', () => {
@@ -1461,6 +1575,7 @@
             chatAttachments = [];
             chatImageUpload.value = '';
             displayChatAttachments(); // Clear attachment previews
+            chatActionsDropdown.classList.add('hidden'); // Hide dropdown
 
             // Stop any ongoing speech
             if (isSpeaking) {
@@ -1485,6 +1600,7 @@
         chatCloseButton.addEventListener('click', () => {
             chatPopupWindow.classList.remove('chat-visible');
             chatPopupWindow.classList.add('chat-hidden');
+            chatActionsDropdown.classList.add('hidden'); // Hide dropdown when chat closes
 
             // Stop any ongoing speech when closing chat
             if (isSpeaking) {
