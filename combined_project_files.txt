@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dream11 Team Predictor</title>
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <!-- Favicon -->
+    <link rel="icon" href="logo.png" type="image/x-icon">
     <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Marked.js CDN for Markdown parsing -->
@@ -752,6 +756,13 @@
                 </div>
             </div>
 
+            <!-- Disclaimer for Fantasy Sports Risks -->
+            <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded-md" role="alert">
+                <p class="font-bold">Disclaimer:</p>
+                <p class="text-sm">Fantasy sports involve an element of financial risk and may be addictive. Please play responsibly and at your own risk. The predictions and advice provided by this AI are based on available data and are for informational purposes only. They do not guarantee financial winnings or success in fantasy contests.</p>
+            </div>
+
+
             <!-- Main Content Area with responsive columns -->
             <div class="flex flex-col gap-8">
                 <!-- Prediction Output -->
@@ -902,6 +913,19 @@
 
 
     <script type="text/javascript">
+        // Register Service Worker for PWA capabilities
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+
         // JavaScript for handling image upload, API call, and chat functionality
         
         // This function call is from the Lucide Icon library to replace all `<span>` tags with the corresponding SVG icons
@@ -1007,10 +1031,9 @@
                 updateButtonIcon(voiceInputBtn, 'mic', 'w-5 h-5'); // Reset icon to mic in dropdown
                 chatInput.placeholder = 'Ask a follow-up question...';
 
-                // If there's a final transcript, automatically send the message.
+                // If there's a final transcript, populate the input field.
                 if (finalTranscript.trim() !== '') {
                     chatInput.value = finalTranscript.trim(); // Ensure final transcript is in the input
-                    sendChatBtn.click(); // Trigger send
                 } else if (chatInput.value.trim() === '') {
                     // If recognition ended with no final transcript and input is empty, clear it
                     chatInput.value = ''; 
@@ -1168,7 +1191,7 @@
 
 
         // Function to append a message to the chat history
-        function appendChatMessage(role, text, attachments = []) { // attachments is now an array of {mimeType, data, name}
+        function appendChatMessage(role, text, attachments = []) { // removed generatedImage parameter
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('chat-message', role);
             
@@ -1298,28 +1321,31 @@
             chatToggleButton.classList.remove('hidden'); 
             chatPopupWindow.classList.add('chat-hidden'); 
 
-            // Modified prompt to include guidance for better predictions
-            const initialPrompt = `Act as a professional sports analyst for the fantasy sports platform Dream11. You are given a screenshot(s) containing information about an upcoming cricket match.
+            // Modified prompt to include guidance for better predictions AND strategic advice
+            const initialPrompt = `Act as a professional sports analyst for the fantasy sports platform Dream11, specializing in cricket. You are given a screenshot(s) containing information about an upcoming cricket match.
             
-            **Your Task:** Analyze all the text and images within the screenshot(s) to find key details such as player form, team news, pitch conditions, and recent performances. Based on your thorough analysis, provide the best possible Dream11 team, including a captain and vice-captain.
+            **Your Task:** Analyze all the text and images within the screenshot(s) to find key details such as player form, team news, pitch conditions, recent performances, and historical data. Based on your thorough analysis, provide the best possible Dream11 team, including a captain and vice-captain.
             
             **Output Format:** Your output must be a single, well-structured text block that:
-            1.  Lists the suggested Dream11 team by player role (Wicket-keeper, Batsmen, All-rounders, Bowlers).
-            2.  Provides a concise, point-form analysis explaining your choices. This analysis must be grounded in the data you extracted from the image.
-            3.  Uses clear headings for each section (e.g., ## Team Analysis) and bullet points for lists (e.g., - Player Name).
-            4.  **IMPORTANT:** If you provide any code (e.g., HTML, JavaScript), always wrap it in a markdown code block (e.g., \`\`\`html\n<p>Hello</p>\n\`\`\` or \`\`\`javascript\nconsole.log('hi');\n\`\`\`).
+            1.  Lists the suggested Dream11 team by player role (Wicket-keeper, Batsmen, All-rounders, Bowlers), ensuring a balanced team.
+            2.  Provides a concise, point-form analysis explaining your choices for each key player and overall team composition. This analysis must be grounded in the data you extracted from the image.
+            3.  Suggests alternative players if options are available and reasons for them.
+            4.  Clearly highlights your Captain and Vice-Captain picks with justifications.
+            5.  Uses clear headings for each section (e.g., ## Team Analysis) and bullet points for lists (e.g., - Player Name).
+            6.  **IMPORTANT:** If you provide any code (e.g., HTML, JavaScript), always wrap it in a markdown code block (e.g., \`\`\`html\n<p>Hello</p>\n\`\`\` or \`\`\`javascript\nconsole.log('hi');\n\`\`\`).
             
             **Information Clarity:**
             - If any crucial information (like specific player stats, team news, or detailed pitch reports) is missing or unclear in the image(s), you must explicitly state what information you were unable to retrieve and how this might impact the prediction.
             
-            **Concluding Tips:** Conclude your response with a small section titled '### Tips for Better Predictions' advising the user on what kind of information helps you make more accurate predictions. This section should list:
-            - Player individual statistics (recent scores, wickets, economy rates)
-            - Player form (last 5-10 matches performance)
-            - Team news (injuries, lineup changes, recent team form)
-            - Pitch reports (batting/bowling friendly, average scores)
-            - Head-to-head records between the teams.
+            **Concluding Tips:** Conclude your response with a small section titled '### Tips for Maximizing Fantasy Points' advising the user on what kind of information helps you make more accurate predictions and strategic choices. This section should list:
+            - **Comprehensive Player Statistics:** Recent scores, wickets, economy rates, strike rates, fantasy points history.
+            - **Detailed Player Form:** Performance in last 5-10 matches, against specific opposition, and at the venue.
+            - **Team News & Dynamics:** Injuries, definite lineup changes, team's recent form, batting order, and specific roles (e.g., powerplay bowler, death bowler).
+            - **In-depth Pitch Reports:** Batting/bowling friendly, average scores, presence of dew, historical venue performance, and expected behavior throughout the match.
+            - **Head-to-Head Records:** Team vs. team and individual player vs. player matchups.
+            - **Strategic Advice:** Considerations for grand leagues vs. small leagues (e.g., differential picks, safe vs. risky captains), budget management, and understanding player roles for point optimization.
             
-            This will help the user provide better inputs in the future.`;
+            This will help the user provide better inputs and formulate stronger strategies in the future.`;
 
 
             try {
@@ -1905,7 +1931,7 @@
             const apiKey = "AIzaSyC7twxprKoApUjR4uebBS-12KVyZTkuvrw"; // <<<<<<< IMPORTANT: REPLACE THIS WITH YOUR GEMINI API KEY
 
             if (apiKey === "YOUR_GEMINI_API_KEY" || !apiKey || apiKey === "") { // Added the previous dummy key check
-                throw new Error("API Key is not set or is the default placeholder. Please replace 'AIzaSyC7twxprKoApUjR4uebBS-12KVyZTkuvrw' in the script with your actual Gemini API key.");
+                throw new Error("API Key is not set or is the default placeholder. Please replace 'YOUR_GEMINI_API_KEY' in the script with your actual Gemini API key.");
             }
 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
@@ -1966,8 +1992,6 @@
 </body>
 </html>
 
------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-do the following and send me the full updated code : 
-
-i'm noticing that when the voice input button is stopped then it's sending the message directly but what it should actually do is that just stop there and send the message using send button/enter key, so that before sending i could also edit it if i want.
+improve the visual appeal of this website, i don't care how large the code is, make it look fantastic, too good to look away and make it much more interactive and influencial.
