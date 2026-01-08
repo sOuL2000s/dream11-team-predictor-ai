@@ -1,7 +1,7 @@
 // File: netlify/functions/gemini-proxy.js
 
-// Using node-fetch for making the external API request
-const fetch = require('node-fetch');
+// Using native Node.js fetch (available in Netlify's modern Node environments)
+// The 'const fetch = require('node-fetch');' line is REMOVED.
 
 exports.handler = async (event, context) => {
     // 1. Check HTTP Method
@@ -39,7 +39,7 @@ exports.handler = async (event, context) => {
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
 
     try {
-        // 5. Call the Gemini API
+        // 5. Call the Gemini API using native fetch
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
