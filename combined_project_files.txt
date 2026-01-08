@@ -1,3 +1,6 @@
+
+--- START FILE: index.html ---
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,6 +13,8 @@
     <link rel="icon" href="logo.png" type="image/x-icon">
     <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter for modern typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <!-- Marked.js CDN for Markdown parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- jsPDF for PDF generation -->
@@ -21,7 +26,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         /*
-         * --- Custom Styles for Dream11 Predictor ---
+         * --- Custom Styles for Dream11 Predictor (Enhanced) ---
          * This section enhances the Tailwind CSS with a modern, futuristic theme,
          * including a vibrant color palette, subtle animations, and improved
          * responsiveness and UI elements.
@@ -30,33 +35,42 @@
         /* Basic font and transition settings for the whole page */
         body {
             font-family: 'Inter', sans-serif;
-            transition: background-color 0.4s ease, color 0.4s ease;
+            transition: background-color 0.6s ease, color 0.6s ease;
+            background-image: radial-gradient(at 0% 0%, hsl(240, 60%, 8%) 0%, transparent 50%),
+                              radial-gradient(at 100% 100%, hsl(260, 50%, 8%) 0%, transparent 50%);
+            background-size: 150% 150%;
+            background-attachment: fixed;
         }
 
         /* Defining a vibrant color palette using CSS variables */
         :root {
             /* Light mode colors */
-            --bg-color-light: #f3f4f6;
-            --card-bg-light: #ffffff;
-            --text-color-light: #1f2937;
-            --border-color-light: #e5e7eb;
+            --bg-color-light: #f3f4f6; /* Light gray */
+            --card-bg-light: #ffffff; /* White */
+            --text-color-light: #1f2937; /* Dark gray */
+            --border-color-light: #e5e7eb; /* Light border gray */
             
             /* Dark mode colors */
-            --bg-color-dark: #0a0a0f;
-            --card-bg-dark: #13131a;
-            --text-color-dark: #e5e7eb;
-            --border-color-dark: #374151;
+            --bg-color-dark: #0a0a0f; /* Deep dark blue-black */
+            --card-bg-dark: #13131a; /* Slightly lighter dark blue-black */
+            --text-color-dark: #e5e7eb; /* Off-white */
+            --border-color-dark: #2d3748; /* Darker blue-gray border */
             
             /* Accent colors for buttons, highlights, etc. */
-            --accent-primary: #1e88e5; /* A vibrant blue */
-            --accent-secondary: #00e676; /* A lively green */
-            --accent-error: #ef4444; /* A clear red for errors */
+            --accent-primary: #6366f1; /* Indigo-500 */
+            --accent-primary-dark: #818cf8; /* Indigo-400 for dark mode */
+            --accent-secondary: #22d3ee; /* Cyan-400 */
+            --accent-secondary-dark: #67e8f9; /* Cyan-300 for dark mode */
+            --accent-error: #ef4444; /* Red-500 */
+            --accent-success: #22c55e; /* Green-500 */
         }
         
         /* Apply colors based on light or dark body class */
         body.light {
             background-color: var(--bg-color-light);
             color: var(--text-color-light);
+            background-image: radial-gradient(at 0% 0%, hsl(210, 30%, 95%) 0%, transparent 50%),
+                              radial-gradient(at 100% 100%, hsl(200, 20%, 90%) 0%, transparent 50%);
         }
 
         body.dark {
@@ -66,9 +80,9 @@
 
         /* Tailwind overrides for dark mode to ensure consistency */
         body.dark .bg-white { background-color: var(--card-bg-dark); }
-        body.dark .bg-gray-50 { background-color: #1a1a2e; }
+        body.dark .bg-gray-50 { background-color: #1a1a2e; } /* Darker alternative to bg-gray-50 */
         body.dark .border-gray-100 { border-color: var(--border-color-dark); }
-        body.dark .border-gray-200 { border-color: #4b5563; }
+        body.dark .border-gray-200 { border-color: #3f3f46; } /* Deeper gray border */
         body.dark .text-gray-800 { color: var(--text-color-dark); }
         body.dark .text-gray-900 { color: var(--text-color-dark); }
         body.dark .text-gray-600 { color: #a1a1aa; } /* Gray 400 */
@@ -77,14 +91,8 @@
         body.dark .hover\:bg-gray-300:hover { background-color: #52525b; }
         body.dark .bg-gray-100 { background-color: #27272a; }
         body.dark .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45); }
-        body.dark #chat-history { background-color: #1a1a2e; }
-        body.dark #chat-input { background-color: #27272a; color: var(--text-color-dark); border-color: #4b5563; }
-        body.dark #chat-history::-webkit-scrollbar-track { background: #374151; }
-        body.dark #chat-history::-webkit-scrollbar-thumb { background: #6b7280; }
-        body.dark #chat-history::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
-        body.dark .bg-indigo-50 { background-color: #1a1a2e; }
-        body.dark #error-message { background-color: #fee2e2; color: #b91c1c; }
-        
+        body.dark #error-message { background-color: #fee2e2; color: #b91c1c; } /* Light red error for contrast */
+
         /* Custom styles for glowing effects on buttons and borders */
         .glow-button {
             position: relative;
@@ -94,21 +102,40 @@
         }
         .glow-button:hover {
             box-shadow: 0 0 15px var(--accent-primary), 0 0 25px var(--accent-primary), 0 0 35px var(--accent-primary);
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.02);
+            background-image: linear-gradient(to right, var(--accent-primary), var(--accent-primary-dark));
         }
+        body.dark .glow-button {
+            box-shadow: 0 0 10px var(--accent-primary-dark);
+        }
+        body.dark .glow-button:hover {
+            box-shadow: 0 0 15px var(--accent-primary-dark), 0 0 25px var(--accent-primary-dark), 0 0 35px var(--accent-primary-dark);
+            background-image: linear-gradient(to right, var(--accent-primary-dark), var(--accent-primary));
+        }
+        
         .glow-border {
-            box-shadow: 0 0 10px rgba(30, 136, 229, 0.5); /* Semi-transparent glow */
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3); /* Slightly softer glow */
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.5s ease;
+        }
+        body.dark .glow-border {
+            box-shadow: 0 0 20px rgba(129, 140, 248, 0.25);
+            border: 1px solid rgba(129, 140, 248, 0.15);
         }
         
         /* Markdown content styling for better readability */
-        .markdown-content h1, .markdown-content h2, .markdown-content h3 { font-weight: bold; margin-bottom: 0.75em; margin-top: 1.5em; line-height: 1.2; }
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 { font-weight: 800; margin-bottom: 0.75em; margin-top: 1.5em; line-height: 1.2; color: var(--accent-primary); }
+        body.dark .markdown-content h1, body.dark .markdown-content h2, body.dark .markdown-content h3 { color: var(--accent-primary-dark); }
         .markdown-content h1 { font-size: 2.25rem; }
         .markdown-content h2 { font-size: 1.875rem; }
         .markdown-content h3 { font-size: 1.5rem; }
         .markdown-content ul, .markdown-content ol { list-style-position: inside; margin-left: 1.5em; margin-bottom: 1em; }
         .markdown-content li { margin-bottom: 0.5em; }
-        .markdown-content strong { color: var(--accent-secondary); }
-        
+        .markdown-content strong { color: var(--accent-secondary); font-weight: 700; }
+        body.dark .markdown-content strong { color: var(--accent-secondary-dark); }
+        .markdown-content p { margin-bottom: 1em; } /* Ensure paragraphs have spacing */
+        .markdown-content p:last-child { margin-bottom: 0; }
+
         /* Custom styles for dark mode toggle switch */
         .slider {
             background-color: #d1d5db;
@@ -129,12 +156,12 @@
         }
 
         /* Custom scrollbar for a sleek look */
-        #chat-history::-webkit-scrollbar { width: 8px; }
-        #chat-history::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        #chat-history::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+        #chat-history::-webkit-scrollbar { width: 10px; }
+        #chat-history::-webkit-scrollbar-track { background: var(--card-bg-light); border-radius: 5px; }
+        #chat-history::-webkit-scrollbar-thumb { background: #888; border-radius: 5px; border: 2px solid var(--card-bg-light); }
         #chat-history::-webkit-scrollbar-thumb:hover { background: #555; }
-        .dark #chat-history::-webkit-scrollbar-track { background: #374151; }
-        .dark #chat-history::-webkit-scrollbar-thumb { background: #6b7280; }
+        .dark #chat-history::-webkit-scrollbar-track { background: var(--card-bg-dark); }
+        .dark #chat-history::-webkit-scrollbar-thumb { background: #6b7280; border-color: var(--card-bg-dark); }
         .dark #chat-history::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
         
         /* Modern loading animation */
@@ -161,10 +188,21 @@
         @keyframes bounce {
             0%, 80%, 100% {
                 transform: scale(0);
+                opacity: 0.5;
             }
             40% {
                 transform: scale(1.0);
+                opacity: 1;
             }
+        }
+
+        /* Animation for upload cloud icon */
+        @keyframes pulse-grow-shrink {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+        }
+        .animate-pulse-grow-shrink {
+            animation: pulse-grow-shrink 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
         
         /* Floating Chat Popup styles */
@@ -209,18 +247,20 @@
             max-height: 80vh;
             display: flex;
             flex-direction: column;
-            background-color: var(--card-bg-light);
+            background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
             border-radius: 1.5rem; /* 24px */
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            border: 1px solid var(--border-color-light);
+            border: 1px solid rgba(229, 231, 235, 0.7); /* Slightly transparent border */
             transition: all 0.3s ease-in-out;
             transform-origin: bottom right;
+            backdrop-filter: blur(8px); /* Frosted glass effect */
+            -webkit-backdrop-filter: blur(8px); /* Safari support */
         }
 
         /* Dark mode specific for the chat popup */
         body.dark #chat-popup-window {
-            background-color: var(--card-bg-dark);
-            border-color: var(--border-color-dark);
+            background-color: rgba(19, 19, 26, 0.9); /* Slightly transparent dark */
+            border-color: rgba(45, 55, 72, 0.7);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
         }
         
@@ -282,10 +322,12 @@
             color: #1e40af; /* Dark blue */
             margin-left: auto;
             border-bottom-right-radius: 0.5rem; /* 8px */
+            background-image: linear-gradient(to bottom right, #e0f2fe, #bfdbfe); /* Subtle gradient */
         }
         body.dark .chat-message.user {
             background-color: #1a237e; /* Darker blue */
             color: #e0e7ff; /* Lighter blue */
+            background-image: linear-gradient(to bottom right, #1a237e, #312e81);
         }
 
         .chat-message.ai {
@@ -293,10 +335,12 @@
             color: #374151; /* Dark gray */
             margin-right: auto;
             border-bottom-left-radius: 0.5rem; /* 8px */
+            background-image: linear-gradient(to bottom left, #f3f4f6, #e5e7eb); /* Subtle gradient */
         }
         body.dark .chat-message.ai {
             background-color: #2d3748; /* Darker gray */
             color: #f9fafb; /* Lighter gray */
+            background-image: linear-gradient(to bottom left, #2d3748, #475569);
         }
 
         /* Styling for chat attachments */
@@ -307,7 +351,41 @@
             margin-top: 0.5rem;
             display: block;
         }
-        
+        .chat-attachment-preview-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 1rem;
+            background-color: #e0e7ff; /* Light indigo */
+            color: #3730a3; /* Dark indigo */
+            font-size: 0.875rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+            transition: all 0.2s ease;
+        }
+        body.dark .chat-attachment-preview-item {
+            background-color: #3730a3; /* Dark indigo */
+            color: #e0e7ff; /* Light indigo */
+        }
+        .chat-attachment-preview-item .remove-attachment-btn {
+            background: none;
+            border: none;
+            color: #6366f1; /* Indigo */
+            cursor: pointer;
+            padding: 0.1rem;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+        body.dark .chat-attachment-preview-item .remove-attachment-btn {
+            color: #a5b4fc; /* Light indigo */
+        }
+        .chat-attachment-preview-item .remove-attachment-btn:hover {
+            background-color: rgba(99, 102, 241, 0.2);
+        }
+        body.dark .chat-attachment-preview-item .remove-attachment-btn:hover {
+            background-color: rgba(165, 180, 252, 0.2);
+        }
+
         /* Styling for the copy message */
         #copy-message {
             position: fixed;
@@ -315,7 +393,7 @@
             left: 50%;
             transform: translateX(-50%);
             padding: 0.75rem 1.5rem;
-            background-color: #10b981;
+            background-color: var(--accent-success);
             color: white;
             border-radius: 9999px;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -365,17 +443,21 @@
             font-weight: bold;
             color: var(--accent-primary); /* Use primary accent for emphasis */
         }
+        body.dark .chat-message.ai .message-content strong {
+            color: var(--accent-primary-dark);
+        }
         .chat-message.ai .message-content em {
             font-style: italic;
         }
         .chat-message.ai .message-content blockquote {
-            border-left: 4px solid var(--accent-primary);
+            border-left: 4px solid var(--accent-secondary);
             padding-left: 1em;
             margin-left: 0;
-            color: var(--text-color-dark); /* Ensure readability in light/dark mode */
+            color: #555;
         }
-        body.light .chat-message.ai .message-content blockquote {
-             color: #4b5563; /* Gray 700 */
+        body.dark .chat-message.ai .message-content blockquote {
+             color: #a1a1aa; /* Gray 400 */
+             border-left: 4px solid var(--accent-secondary-dark);
         }
 
         /* Code block specific styling */
@@ -388,6 +470,7 @@
             margin-bottom: 1rem;
             overflow: hidden; /* Ensure rounded corners clip content */
             border: 1px solid #3f3f46; /* Subtle border */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
         
         .code-block-container pre {
@@ -397,10 +480,6 @@
             font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace; /* Monospaced font */
             font-size: 0.9em;
             line-height: 1.4;
-        }
-
-        .code-block-container code {
-            /* No specific styling for `code` inside `pre` as `pre` sets it */
         }
 
         .code-block-header {
@@ -562,7 +641,7 @@
         #pdf-export-content .pdf-header {
             text-align: center;
             margin-bottom: 20mm;
-            border-bottom: 2px solid var(--accent-primary);
+            border-bottom: 2px solid #6366f1; /* Indigo */
             padding-bottom: 10px;
             display: flex;
             align-items: center;
@@ -572,7 +651,7 @@
         #pdf-export-content .pdf-header h1 {
             font-size: 28px;
             font-weight: bold;
-            color: var(--accent-primary);
+            color: #6366f1; /* Indigo */
             margin: 0;
             line-height: 1;
         }
@@ -584,7 +663,7 @@
         #pdf-export-content .pdf-header .lucide {
             width: 32px;
             height: 32px;
-            color: var(--accent-primary);
+            color: #6366f1; /* Indigo */
         }
 
         #pdf-export-content .pdf-body {
@@ -600,7 +679,7 @@
             margin-bottom: 0.5em;
             margin-top: 1em;
             line-height: 1.2;
-            color: var(--accent-primary);
+            color: #6366f1; /* Indigo */
         }
         #pdf-export-content .pdf-body h1 { font-size: 24px; }
         #pdf-export-content .pdf-body h2 { font-size: 20px; }
@@ -617,10 +696,10 @@
         }
         #pdf-export-content .pdf-body strong {
             font-weight: bold;
-            color: #00e676; /* Green accent */
+            color: #22c55e; /* Green accent */
         }
         #pdf-export-content .pdf-body a {
-            color: var(--accent-primary);
+            color: #6366f1;
             text-decoration: underline;
         }
         #pdf-export-content .pdf-body blockquote {
@@ -640,6 +719,7 @@
             margin-bottom: 1rem;
             overflow: hidden;
             border: 1px solid #ddd;
+            box-shadow: none; /* No shadows in PDF */
         }
         #pdf-export-content .code-block-container pre {
             padding: 0.8rem;
@@ -685,6 +765,8 @@
             z-index: 20;
             border: 1px solid var(--border-color-light);
             min-width: 140px; /* Adjust as needed */
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
         }
         body.dark .chat-actions-dropdown {
             background-color: var(--card-bg-dark);
@@ -717,7 +799,7 @@
         }
         body.dark .chat-actions-dropdown button:hover,
         body.dark .chat-actions-dropdown label:hover {
-            background-color: var(--bg-color-dark); /* Darker hover for dark theme */
+            background-color: #1a1a2e; /* Darker hover for dark theme */
         }
         .chat-actions-dropdown button .lucide,
         .chat-actions-dropdown label .lucide {
@@ -726,6 +808,20 @@
             height: 1.25rem;
             flex-shrink: 0;
             color: var(--accent-primary); /* Use primary accent for icons */
+        }
+        body.dark .chat-actions-dropdown button .lucide,
+        body.dark .chat-actions-dropdown label .lucide {
+            color: var(--accent-primary-dark);
+        }
+
+        /* Drag and Drop visual feedback for chat window */
+        #chat-popup-window.drag-over-active {
+            border: 2px dashed var(--accent-primary);
+            box-shadow: 0 0 20px var(--accent-primary), 0 0 30px var(--accent-primary) inset;
+        }
+        body.dark #chat-popup-window.drag-over-active {
+            border: 2px dashed var(--accent-primary-dark);
+            box-shadow: 0 0 20px var(--accent-primary-dark), 0 0 30px var(--accent-primary-dark) inset;
         }
 
     </style>
@@ -740,7 +836,7 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
                 <div class="text-left mb-4 md:mb-0">
                     <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 tracking-tight">
-                        Dream11 Predictor ⚡
+                        Dream11 Predictor <span class="text-indigo-500">⚡</span>
                     </h1>
                     <p class="text-lg md:text-xl text-gray-600 mt-2">
                         Analyze data and craft your winning team with AI.
@@ -769,10 +865,10 @@
                 <div class="flex-1">
                     
                     <!-- Upload and Preview Section -->
-                    <div class="bg-gray-50 rounded-2xl p-6 sm:p-8 mb-4 border-2 border-dashed border-gray-200 transition-all duration-300 hover:bg-gray-100 hover:border-indigo-400">
+                    <div id="upload-area" class="bg-gray-50 rounded-2xl p-6 sm:p-8 mb-4 border-2 border-dashed border-gray-200 transition-all duration-300 hover:bg-gray-100 hover:border-indigo-400">
                         <label for="image-upload" class="cursor-pointer block">
                             <div class="flex flex-col items-center justify-center p-4 sm:p-6 text-center">
-                                <span data-lucide="upload-cloud" class="w-12 h-12 sm:w-14 sm:h-14 text-indigo-500 animate-pulse"></span>
+                                <span data-lucide="upload-cloud" class="w-12 h-12 sm:w-14 sm:h-14 text-indigo-500 animate-pulse-grow-shrink"></span>
                                 <p class="mt-4 text-sm text-gray-600">
                                     <span class="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
                                         Click to upload
@@ -789,25 +885,25 @@
                     </div>
 
                     <div id="preview-container" class="mb-4 hidden transition-opacity duration-300">
-                        <h2 class="text-lg sm:text-xl font-bold mb-4 text-gray-700">Image Preview(s):</h2>
-                        <div id="image-previews" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <h2 class="text-lg sm:text-xl font-bold mb-4 text-gray-700 dark:text-gray-300">Image Preview(s):</h2>
+                        <div id="image-previews" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                             <!-- Image previews will be dynamically added here -->
                         </div>
                     </div>
 
                     <!-- Action and Status Buttons -->
                     <div class="flex flex-col sm:flex-row gap-4 mb-8">
-                        <button id="analyze-btn" class="flex-1 py-3 px-6 sm:py-4 sm:px-8 rounded-full bg-indigo-600 text-white font-bold shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 disabled:bg-indigo-400 disabled:cursor-not-allowed transform hover:scale-105 glow-button" style="--accent-primary: #1e88e5;">
+                        <button id="analyze-btn" class="flex-1 py-3 px-6 sm:py-4 sm:px-8 rounded-full bg-indigo-600 text-white font-bold shadow-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 disabled:bg-indigo-400 disabled:cursor-not-allowed transform hover:scale-105 glow-button" style="--accent-primary: #6366f1; --accent-primary-dark: #818cf8;">
                             Analyze and Predict
                         </button>
-                        <button id="clear-btn" class="flex-1 py-3 px-6 sm:py-4 sm:px-8 rounded-full bg-gray-200 text-gray-800 font-bold shadow-lg hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-400 transition-all duration-300 transform hover:scale-105">
+                        <button id="clear-btn" class="flex-1 py-3 px-6 sm:py-4 sm:px-8 rounded-full bg-gray-200 text-gray-800 font-bold shadow-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-400 transition-all duration-300 transform hover:scale-105">
                             Clear All
                         </button>
                     </div>
 
                     <!-- AI Response Section -->
                     <div id="results-container" class="hidden transition-opacity duration-300">
-                        <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-700 border-b-2 border-indigo-500 pb-2">AI's Dream11 Prediction:</h2>
+                        <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-700 dark:text-gray-300 border-b-2 border-indigo-500 dark:border-indigo-400 pb-2">AI's Dream11 Prediction:</h2>
                         <div id="loading-indicator" class="hidden text-center text-gray-500 text-sm py-8">
                              <!-- Modern loader animation -->
                              <div class="loader-container">
@@ -820,7 +916,7 @@
                         <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-xl relative shadow-md" role="alert">
                             <span class="block sm:inline" id="error-text"></span>
                         </div>
-                        <div id="prediction-output" class="p-6 bg-gray-100 rounded-xl border border-gray-200 text-base shadow-inner markdown-content"></div>
+                        <div id="prediction-output" class="p-6 bg-gray-100 rounded-xl border border-gray-200 text-base shadow-inner markdown-content dark:bg-gray-800 dark:border-gray-700"></div>
                         
                         <!-- New buttons for PDF and Text Export -->
                         <div id="export-buttons" class="mt-4 flex flex-col sm:flex-row gap-4 hidden">
@@ -885,7 +981,7 @@
                         <span data-lucide="plus" class="w-5 h-5"></span>
                     </button>
 
-                    <button id="send-chat-btn" aria-label="Send Message" class="flex items-center justify-center w-12 h-12 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 disabled:bg-indigo-400 disabled:cursor-not-allowed glow-button flex-shrink-0" style="--accent-primary: #1e88e5;">
+                    <button id="send-chat-btn" aria-label="Send Message" class="flex items-center justify-center w-12 h-12 rounded-full bg-indigo-600 text-white shadow-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 disabled:bg-indigo-400 disabled:cursor-not-allowed glow-button flex-shrink-0" style="--accent-primary: #6366f1; --accent-primary-dark: #818cf8;">
                         <span data-lucide="send" class="w-5 h-5"></span>
                     </button>
                 </div>
@@ -941,8 +1037,9 @@
              createIcons();
         });
 
+        const uploadArea = document.getElementById('upload-area');
         const imageUpload = document.getElementById('image-upload');
-        const imagePreviewsContainer = document.getElementById('image-previews'); // Changed to container
+        const imagePreviewsContainer = document.getElementById('image-previews'); 
         const previewContainer = document.getElementById('preview-container');
         const analyzeBtn = document.getElementById('analyze-btn');
         const clearBtn = document.getElementById('clear-btn');
@@ -979,7 +1076,7 @@
         const pdfBody = pdfExportContent.querySelector('.pdf-body');
         const pdfDate = document.getElementById('pdf-date');
 
-        let uploadedMainImages = []; // Array to store {mimeType, data} for main upload
+        let uploadedMainImages = []; // Array to store {mimeType, data, file} for main upload
         let chatAttachments = []; // Array to store {file: File, mimeType: string, data: string} for chat
         let chatHistory = [];
         let lastPredictionText = '';
@@ -1073,7 +1170,7 @@
 
         } else {
             console.warn('Web Speech API (SpeechRecognition) not supported in this browser. Voice input button will be hidden.');
-            // voiceInputBtn.style.display = 'none'; // Will handle hiding via dropdown logic
+            voiceInputBtn.style.display = 'none'; // Hide the voice input button if not supported
         }
 
         // Dark Mode Initialization and Listener
@@ -1120,7 +1217,7 @@
             if (mimeType === 'application/pdf') return 'file-text';
             if (mimeType.includes('text/')) return 'file-text';
             if (mimeType.includes('csv') || mimeType.includes('excel')) return 'file-spreadsheet';
-            if (mimeType.includes('json') || mimeType.includes('xml') || mimeType.includes('code')) return 'file-code';
+            if (mimeType.includes('json') || mimeType.includes('xml') || mimeType.includes('code') || mimeType.includes('markdown')) return 'file-code';
             return 'file';
         }
 
@@ -1142,7 +1239,7 @@
                     actualCodeContent = code;
                 }
 
-                const languageDisplay = lang ? `<span class="text-xs">${lang.toUpperCase()}</span>` : '';
+                const languageDisplay = lang ? `<span class="text-xs font-semibold uppercase text-gray-400">${lang}</span>` : '';
                 const uniqueId = `code-block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
                 
                 const escapedCode = actualCodeContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -1259,32 +1356,46 @@
             createIcons();
         }
 
+        // Function to display main image previews
+        function displayMainImagePreviews() {
+            imagePreviewsContainer.innerHTML = '';
+            if (uploadedMainImages.length > 0) {
+                previewContainer.classList.remove('hidden');
+                uploadedMainImages.forEach((image, index) => {
+                    const previewItem = document.createElement('div');
+                    previewItem.classList.add('relative', 'w-full', 'h-48', 'rounded-xl', 'overflow-hidden', 'shadow-lg', 'border', 'border-gray-200');
+                    previewItem.innerHTML = `
+                        <img src="${URL.createObjectURL(image.file)}" alt="Image Preview" class="w-full h-full object-contain">
+                        <button class="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-80 hover:opacity-100 transition-opacity remove-main-image-btn" data-index="${index}">
+                            <span data-lucide="x" class="w-4 h-4"></span>
+                        </button>
+                    `;
+                    imagePreviewsContainer.appendChild(previewItem);
+                });
+                createIcons(); // Ensure delete icons are rendered
+            } else {
+                previewContainer.classList.add('hidden');
+            }
+        }
+
         // Event listener for main image upload input
         imageUpload.addEventListener('change', async (event) => {
             const files = Array.from(event.target.files);
             if (files.length > 0) {
                 uploadedMainImages = []; // Reset array
-                imagePreviewsContainer.innerHTML = ''; // Clear existing previews
-                previewContainer.classList.remove('hidden');
                 
                 // Process each file
                 for (const file of files) {
                     try {
                         const { mimeType, data } = await fileToBase64(file);
-                        uploadedMainImages.push({ mimeType, data });
-
-                        // Create and append image preview
-                        const img = document.createElement('img');
-                        img.src = URL.createObjectURL(file);
-                        img.alt = 'Image Preview';
-                        img.classList.add('w-full', 'max-h-48', 'object-contain', 'rounded-xl', 'shadow-lg', 'border', 'border-gray-200');
-                        imagePreviewsContainer.appendChild(img);
+                        uploadedMainImages.push({ file, mimeType, data });
 
                     } catch (error) {
                         showError(`Failed to read file ${file.name}.`);
                         console.error('File read error:', error);
                     }
                 }
+                displayMainImagePreviews(); // Update previews
                 
                 analyzeBtn.disabled = uploadedMainImages.length === 0;
                 resultsContainer.classList.add('hidden'); // Hide previous results
@@ -1299,9 +1410,67 @@
                 previewContainer.classList.add('hidden');
                 analyzeBtn.disabled = true;
                 uploadedMainImages = [];
+                displayMainImagePreviews(); // Clear previews if no files selected
             }
         });
-        
+
+        // Event listener for removing main image previews (using event delegation)
+        imagePreviewsContainer.addEventListener('click', (event) => {
+            const removeBtn = event.target.closest('.remove-main-image-btn');
+            if (removeBtn) {
+                const index = parseInt(removeBtn.dataset.index);
+                uploadedMainImages.splice(index, 1); // Remove from array
+                displayMainImagePreviews(); // Re-render previews
+                analyzeBtn.disabled = uploadedMainImages.length === 0;
+            }
+        });
+
+        // Event listener for drag & drop on main upload area
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadArea.classList.add('border-indigo-600', 'bg-indigo-50');
+            uploadArea.classList.remove('hover:border-indigo-400');
+        });
+
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadArea.classList.remove('border-indigo-600', 'bg-indigo-50');
+            uploadArea.classList.add('hover:border-indigo-400');
+        });
+
+        uploadArea.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadArea.classList.remove('border-indigo-600', 'bg-indigo-50');
+            uploadArea.classList.add('hover:border-indigo-400');
+
+            const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+            if (files.length > 0) {
+                uploadedMainImages = []; 
+                for (const file of files) {
+                    try {
+                        const { mimeType, data } = await fileToBase64(file);
+                        uploadedMainImages.push({ file, mimeType, data });
+                    } catch (error) {
+                        showError(`Failed to read file ${file.name}.`);
+                        console.error('File read error:', error);
+                    }
+                }
+                displayMainImagePreviews();
+                analyzeBtn.disabled = uploadedMainImages.length === 0;
+                resultsContainer.classList.add('hidden');
+                exportButtons.classList.add('hidden');
+                errorContainer.classList.add('hidden');
+                chatHistory = [];
+                chatHistoryDiv.innerHTML = '';
+                messageTextCache.clear();
+                chatToggleButton.classList.remove('hidden');
+                chatPopupWindow.classList.add('chat-hidden');
+            }
+        });
+
         // Event listener for the Analyze button
         analyzeBtn.addEventListener('click', async () => {
             if (uploadedMainImages.length === 0) {
@@ -1422,12 +1591,12 @@
                 chatAttachmentsPreviewContainer.classList.remove('hidden');
                 chatAttachments.forEach((attachment, index) => {
                     const attachmentDiv = document.createElement('div');
-                    attachmentDiv.classList.add('flex', 'items-center', 'gap-1', 'p-2', 'rounded-md', 'bg-gray-100', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200', 'text-sm');
+                    attachmentDiv.classList.add('chat-attachment-preview-item');
                     attachmentDiv.dataset.index = index;
 
                     let previewContent = '';
                     if (attachment.mimeType.startsWith('image/')) {
-                        previewContent = `<img src="data:${attachment.mimeType};base64,${attachment.data}" alt="${attachment.name}" class="w-10 h-10 object-cover rounded-md">`;
+                        previewContent = `<img src="data:${attachment.mimeType};base64,${attachment.data}" alt="${attachment.name}" class="w-8 h-8 object-cover rounded-md">`;
                     } else {
                         previewContent = `<span data-lucide="${getFileIcon(attachment.mimeType)}" class="w-5 h-5 flex-shrink-0"></span>`;
                     }
@@ -1435,7 +1604,7 @@
                     attachmentDiv.innerHTML = `
                         ${previewContent}
                         <span class="truncate max-w-[100px]">${attachment.name}</span>
-                        <button class="remove-attachment-btn text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 ml-1">
+                        <button class="remove-attachment-btn">
                             <span data-lucide="x" class="w-4 h-4"></span>
                         </button>
                     `;
@@ -1481,14 +1650,14 @@
             if (userMessage) {
                 userParts.push({ text: userMessage });
             }
-            chatAttachments.forEach(attachment => {
+            for (const attachment of chatAttachments) {
                 userParts.push({
                     inlineData: {
                         mimeType: attachment.mimeType,
                         data: attachment.data
                     }
                 });
-            });
+            }
 
             // Append user message and attachments to chat history and UI
             chatHistory.push({ role: 'user', parts: userParts });
@@ -1577,17 +1746,63 @@
             }
         });
 
+        // Drag and Drop for Chat Window
+        chatPopupWindow.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            chatPopupWindow.classList.add('drag-over-active');
+        });
+
+        chatPopupWindow.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            chatPopupWindow.classList.remove('drag-over-active');
+        });
+
+        chatPopupWindow.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            chatPopupWindow.classList.remove('drag-over-active');
+
+            const files = Array.from(e.dataTransfer.files);
+            if (files.length > 0) {
+                for (const file of files) {
+                    // Basic file type validation for chat (allow images, text, pdf, csv, json, xml, md)
+                    const allowedTypes = [
+                        'image/', 'text/', 'application/pdf',
+                        'application/json', 'text/csv', 'application/xml', 'text/markdown'
+                    ];
+                    const isAllowed = allowedTypes.some(type => file.type.startsWith(type)) || file.name.endsWith('.md');
+
+                    if (isAllowed) {
+                        try {
+                            const { mimeType, data } = await fileToBase64(file);
+                            chatAttachments.push({ file, mimeType, data, name: file.name });
+                        } catch (error) {
+                            showError(`Failed to read chat file ${file.name}.`);
+                            console.error('Chat file read error:', error);
+                        }
+                    } else {
+                        showError(`File type not supported for chat: ${file.name} (${file.type}).`);
+                    }
+                }
+                displayChatAttachments();
+                chatInput.focus();
+            }
+        });
+
 
         // Event listener for the Clear button
         clearBtn.addEventListener('click', () => {
             imageUpload.value = ''; // Reset the file input
-            imagePreviewsContainer.innerHTML = ''; // Clear the image previews
-            previewContainer.classList.add('hidden');
+            uploadedMainImages = []; // Clear main images
+            displayMainImagePreviews(); // Clear the image previews
+            
             predictionOutput.innerHTML = ''; // Clear the output text
             resultsContainer.classList.add('hidden');
             exportButtons.classList.add('hidden');
             analyzeBtn.disabled = true;
-            uploadedMainImages = []; // Clear main images
+            
             errorContainer.classList.add('hidden');
             errorText.textContent = '';
             chatToggleButton.classList.remove('hidden'); // Keep chat button visible
@@ -1927,10 +2142,15 @@
 
         // Generic API call function with exponential backoff
         async function callGeminiAPI(payload) {
-            // Replace with your actual API key
-            const apiKey = "AIzaSyC7twxprKoApUjR4uebBS-12KVyZTkuvrw"; // <<<<<<< IMPORTANT: REPLACE THIS WITH YOUR GEMINI API KEY
+            // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            // IMPORTANT: Replace "YOUR_GEMINI_API_KEY" with your actual Google Gemini API Key.
+            // Get your API key from Google AI Studio: https://makersuite.google.com/
+            // Do NOT expose your API key directly in production applications.
+            // For production, consider using a backend proxy to secure your API key.
+            // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            const apiKey = "AIzaSyCzx6ReMk8ohPJcCjGwHHzu7SvFccJqAbA"; 
 
-            if (apiKey === "YOUR_GEMINI_API_KEY" || !apiKey || apiKey === "") { // Added the previous dummy key check
+            if (apiKey === "YOUR_GEMINI_API_KEY" || !apiKey || apiKey === "") { 
                 throw new Error("API Key is not set or is the default placeholder. Please replace 'YOUR_GEMINI_API_KEY' in the script with your actual Gemini API key.");
             }
 
@@ -1992,9 +2212,124 @@
 </body>
 </html>
 
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--- END FILE: index.html ---
 
-improve the visual appeal of this website, i don't care how large the code is, make it look fantastic, too good to look away and make it much more interactive and influencial.
-in chat with ai add a drag and drop feature where users can drag and drop files onto the chat(just like chatgpt/gemini).
-make every aspect of the site look way too attractive.
-make the pdf generated from "save as pdf" look simple, minimal and professional.
+--- START FILE: manifest.json ---
+
+{
+  "name": "Dream11 Team Predictor",
+  "short_name": "Dream11 AI",
+  "description": "AI-powered Dream11 cricket team prediction and fantasy sports guidance.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#1e88e5",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
+--- END FILE: manifest.json ---
+
+--- START FILE: sw.js ---
+
+const CACHE_NAME = 'dream11-predictor-v1';
+const urlsToCache = [
+    './',
+    './index.html',
+    './manifest.json',
+    './logo.png',     // MAKE SURE YOU CREATE THIS FILE
+    './favicon.ico',  // MAKE SURE YOU CREATE THIS FILE
+    'https://cdn.tailwindcss.com',
+    'https://cdn.jsdelivr.net/npm/marked/marked.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+    'https://cdn.jsdelivr.net/npm/lucide-dynamic@latest/dist/lucide.min.js',
+    'https://unpkg.com/lucide@latest'
+];
+
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then((cache) => {
+                console.log('Opened cache');
+                return cache.addAll(urlsToCache);
+            })
+    );
+});
+
+self.addEventListener('fetch', (event) => {
+    event.respondWith(
+        caches.match(event.request)
+            .then((response) => {
+                // Cache hit - return response
+                if (response) {
+                    return response;
+                }
+                // Clone the request to make a network request
+                const fetchRequest = event.request.clone();
+
+                return fetch(fetchRequest).then(
+                    (response) => {
+                        // Check if we received a valid response
+                        if (!response || response.status !== 200 || response.type !== 'basic') {
+                            return response;
+                        }
+
+                        // Clone the response. A response is a stream
+                        // and can only be consumed once.
+                        const responseToCache = response.clone();
+
+                        caches.open(CACHE_NAME)
+                            .then((cache) => {
+                                cache.put(event.request, responseToCache);
+                            });
+
+                        return response;
+                    }
+                );
+            })
+    );
+});
+
+// Optional: Clean up old caches
+self.addEventListener('activate', (event) => {
+    const cacheWhitelist = [CACHE_NAME];
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheWhitelist.indexOf(cacheName) === -1) {
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
+    );
+});
+
+--- END FILE: sw.js ---
