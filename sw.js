@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dream11-predictor-v1';
+const CACHE_NAME = 'dream11-predictor-v2';
 const urlsToCache = [
     './',
     './index.html',
